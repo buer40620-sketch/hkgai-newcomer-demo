@@ -80,10 +80,10 @@ const labels = {
 
 async function boot() {
   const [tasks, sources, rules, templates] = await Promise.all([
-    fetchJson("/src/data/tasks.json"),
-    fetchJson("/src/data/sources.json"),
-    fetchJson("/src/data/address_proof_rules.json"),
-    fetchJson("/src/data/question_templates.json")
+    fetchJson("./src/data/tasks.json"),
+    fetchJson("./src/data/sources.json"),
+    fetchJson("./src/data/address_proof_rules.json"),
+    fetchJson("./src/data/question_templates.json")
   ]);
 
   state.tasks = tasks;
