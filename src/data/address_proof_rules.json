@@ -1,0 +1,83 @@
+[
+  {
+    "rule_id": "addr_school_record_update_001",
+    "label": "学校注册 / 学校资料更新 / 宿舍证明",
+    "purposes": ["school_registration", "student_record_update", "school_housing_proof"],
+    "available_materials": ["school_housing_proof", "student_status_letter", "lease", "temporary_accommodation"],
+    "living_status": ["school_hall", "off_campus_rental", "temporary_stay"],
+    "result_title": "先向学校确认证明用途和格式",
+    "possible_paths": [
+      "如果住学校宿舍，优先查看宿舍办公室或学生事务处是否能开具带姓名和香港地址的 residence/address proof。",
+      "如果住校外，先在学校学生系统更新通讯地址，再向学生事务处确认学校记录更新接受哪些文件。",
+      "如果要把学校证明用于银行或政府服务，必须再向接收机构确认是否接受。"
+    ],
+    "confirm_items": [
+      "文件是否必须显示学生姓名和香港地址。",
+      "电子版、原件、英文版本、最近三个月日期是否有要求。",
+      "这份学校文件是否只适用于校内记录，还是可用于银行或政府服务。"
+    ],
+    "next_actions": [
+      "打开学校宿舍或学生事务处来源。",
+      "生成给学校办公室的咨询问题。",
+      "把目标机构回复保存到任务状态里。"
+    ],
+    "source_ids": ["HK-A-701-HKUST-SHRLO-ADDRESS", "HK-A-702-CUHK-PGH-ADDRESS", "HK-A-704-HKBU-RESIDENTIAL-PROOF"],
+    "output_status": "needs_confirm",
+    "final_decision_maker": "对应学校办公室和接收机构",
+    "boundary_note": "学校证明可能支持学校或学生场景，但校外机构是否接受必须由接收机构确认。"
+  },
+  {
+    "rule_id": "addr_government_service_001",
+    "label": "HKID / 政府服务相关地址信息",
+    "purposes": ["hkid", "government_service"],
+    "available_materials": ["government_letter", "university_document", "stamped_tenancy_agreement", "utility_bill", "no_document"],
+    "living_status": ["school_hall", "off_campus_rental", "family_or_friend_home", "temporary_stay"],
+    "result_title": "政府服务要按具体部门确认",
+    "possible_paths": [
+      "HKID 相关事项只使用入境处来源作为官方入口，不从其他部门页面推导材料清单。",
+      "其他政府服务要看目标部门自己的地址证明页面；运输署规则只能作为部门差异样例。",
+      "如果不清楚应问哪个部门，先用 1823 询问。"
+    ],
+    "confirm_items": [
+      "正在办理的是哪个具体政府部门或服务。",
+      "该服务是否要求地址证明，以及接受哪些文件。",
+      "大学文件、已打厘印租约、临时住宿文件或同住人文件是否可接受。"
+    ],
+    "next_actions": [
+      "打开入境处 HKID 或地址更新入口。",
+      "不确定时联系 1823。",
+      "不要把运输署地址证明要求套用到所有政府服务。"
+    ],
+    "source_ids": ["HK-S-209-IMMD-HKID", "HK-S-210-IMMD-CHANGE-ADDRESS", "HK-S-208-1823-CONTACT", "HK-S-206-TD-ADDRESS"],
+    "output_status": "needs_confirm",
+    "final_decision_maker": "对应政府部门",
+    "boundary_note": "政府地址证明规则按部门和服务而定，不能泛化。"
+  },
+  {
+    "rule_id": "addr_bank_account_001",
+    "label": "银行开户",
+    "purposes": ["bank_account"],
+    "available_materials": ["school_housing_proof", "student_status_letter", "stamped_tenancy_agreement", "home_country_address_proof", "temporary_accommodation", "no_document"],
+    "living_status": ["school_hall", "off_campus_rental", "temporary_stay"],
+    "result_title": "先选目标银行，再确认材料要求",
+    "possible_paths": [
+      "不同银行开户要求可能不同，应先选择目标银行并查看其官方开户清单。",
+      "学校证明、学生信、已打厘印租约或临时住宿材料只能作为咨询问题中的候选材料。",
+      "HKMA 来源用于解释银行要求会变化，不替代任何一家银行的最终审核。"
+    ],
+    "confirm_items": [
+      "目标银行是否需要香港 residential address proof，还是只需地址资料。",
+      "是否接受学校宿舍证明、学生信、已打厘印租约、家乡地址证明或临时住宿文件。",
+      "是否需要原件、英文版本、最近三个月日期、香港电话号码或额外补充文件。"
+    ],
+    "next_actions": [
+      "打开 HKMA 开户资料说明。",
+      "查看目标银行官方开户入口。",
+      "生成给银行的咨询问题。"
+    ],
+    "source_ids": ["HK-S-211-HKMA-ACCOUNT-INFO", "HK-S-212-HKMA-FAQ-ADDRESS", "HK-A-703-POLYU-BANK-ADDRESS", "HK-A-705-EDUHK-BANK-ADDRESS"],
+    "output_status": "needs_confirm",
+    "final_decision_maker": "目标银行",
+    "boundary_note": "银行要求会变化，最终接受情况由目标银行决定。"
+  }
+]

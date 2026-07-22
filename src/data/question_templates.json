@@ -1,0 +1,29 @@
+[
+  {
+    "template_id": "qt_school_address_proof_001",
+    "target_type": "school",
+    "target_label": "学校 / 宿舍办公室",
+    "scenario": "address_proof",
+    "required_slots": ["living_status", "materials", "purpose"],
+    "fallback_channels": ["学校学生事务处", "宿舍办公室", "Registry"],
+    "template_text": "我是新入学的非本地学生，目前住在/即将入住【居住状态】。我想确认学校是否可以为我开具带有姓名和香港住址的住宿证明或地址证明。我目前已有：【材料列表】。请问这份证明可否用于【用途】？是否需要原件、电子版、英文版本、最近三个月日期或其他格式要求？"
+  },
+  {
+    "template_id": "qt_government_address_proof_001",
+    "target_type": "government",
+    "target_label": "政府 / 1823",
+    "scenario": "address_proof",
+    "required_slots": ["purpose", "materials"],
+    "fallback_channels": ["1823", "入境处", "对应政府部门"],
+    "template_text": "我是新来港学生，想办理【用途】。我目前没有本人水电账单，手上有：【材料列表】。请问这个服务是否需要地址证明？如果需要，哪些文件可接受？如果应由其他部门确认，请问应联系哪个部门？"
+  },
+  {
+    "template_id": "qt_bank_address_proof_001",
+    "target_type": "bank",
+    "target_label": "银行 / 目标机构",
+    "scenario": "address_proof",
+    "required_slots": ["materials", "living_status"],
+    "fallback_channels": ["目标银行客服", "银行分行", "学校银行开户支援入口"],
+    "template_text": "我是非本地学生，准备在贵行开立账户。我目前的香港住址材料是：【材料列表】，当前居住状态是：【居住状态】。请问开户是否需要香港 residential address proof？上述文件是否可接受？是否需要原件、英文版本、最近三个月日期、香港电话号码或其他补充文件？"
+  }
+]
