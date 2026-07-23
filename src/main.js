@@ -2,7 +2,7 @@ const app = document.querySelector("#app");
 
 const state = {
   page: "P0",
-  selectedTaskId: "address_proof_001",
+  selectedTaskId: "housing_materials_001",
   selectedSourceIds: [],
   tasks: [],
   sources: [],
@@ -10,15 +10,16 @@ const state = {
   templates: [],
   profile: {
     user_group: "内地来港读研学生",
-    arrival_stage: "抵港第一周",
-    main_blocker: "住址证明",
+    arrival_stage: "抵港前",
+    main_blocker: "住处与材料",
     input:
-      "我是内地来港读研学生，刚到香港，还没有本人水电账单。我要办身份证、学校注册和之后开户，住址证明该怎么准备？"
+      "我是内地来港读研学生，8 月底到香港，还没租房，也没办香港电话卡。到港前和第一周应该先做什么？"
   },
   matcher: {
+    arrival_phase: "pre_arrival",
     purposes: ["school_registration", "hkid", "bank_account"],
     materials: ["school_housing_proof", "student_status_letter", "temporary_accommodation"],
-    living_status: "school_hall",
+    living_status: "temporary_stay",
     matchedRules: []
   },
   copied: false
@@ -51,6 +52,11 @@ const labels = {
     family_or_friend_home: "亲友家",
     temporary_stay: "酒店 / 短租",
     not_decided: "未确定"
+  },
+  phase: {
+    pre_arrival: "抵港前",
+    arrival_week: "抵港第一周",
+    first_month: "抵港第一个月"
   },
   risk: {
     green: "绿色风险",
@@ -128,8 +134,8 @@ function matchRules() {
 }
 
 function updateMatcher(key, value, checked) {
-  if (key === "living_status") {
-    state.matcher.living_status = value;
+  if (key === "living_status" || key === "arrival_phase") {
+    state.matcher[key] = value;
   } else {
     const list = new Set(state.matcher[key]);
     checked ? list.add(value) : list.delete(value);
@@ -151,11 +157,11 @@ function openSources(sourceIds) {
 
 function completeAddressLoop() {
   state.tasks = state.tasks.map((task) =>
-    task.task_id === "address_proof_001"
-      ? { ...task, status: "needs_confirm", next_steps: ["联系学校 / 1823 / 目标银行确认", "保存机构回复", "继续 HKID 时间线"] }
+    task.task_id === "housing_materials_001"
+      ? { ...task, status: "needs_confirm", next_steps: ["联系学校 / 1823 / 目标银行确认", "保存机构回复", "继续电话卡、HKID 和银行任务"] }
       : task
   );
-  state.selectedTaskId = "address_proof_001";
+  state.selectedTaskId = "housing_materials_001";
   setPage("P1");
 }
 
@@ -187,7 +193,7 @@ function renderShell(content) {
             .join("")}
         </nav>
         <div class="note">
-          主线保底使用本地 mock。住址证明只输出可能路径和需确认事项。
+          主线保底使用本地 mock。先按时间线导航，再进入住处与材料深挖；材料问题只输出可能路径和需确认事项。
         </div>
       </aside>
       <main class="main">${content}</main>
@@ -199,7 +205,7 @@ function renderWelcome() {
   return `
     <section class="panel hero-panel">
       <p class="eyebrow">P0 欢迎 / 身份选择</p>
-      <h1>把刚来香港的混乱，整理成第一月路线图</h1>
+      <h1>把到港前和第一周的混乱，整理成第一月路线图</h1>
       <textarea id="profileInput">${state.profile.input}</textarea>
       <div class="choice-row" aria-label="用户身份">
         ${["内地来港读研学生", "新来港家庭", "高才通 / 专才", "我帮家人办理"]
@@ -207,7 +213,7 @@ function renderWelcome() {
           .join("")}
       </div>
       <div class="choice-row" aria-label="抵港阶段">
-        ${["还没出发", "刚抵港", "抵港第一周", "第一月"]
+        ${["抵港前", "刚抵港", "抵港第一周", "第一月"]
           .map((item) => `<button class="chip ${item === state.profile.arrival_stage ? "selected" : ""}" data-stage="${item}">${item}</button>`)
           .join("")}
       </div>
@@ -221,25 +227,31 @@ function renderWelcome() {
 }
 
 function renderRoadmap() {
-  const core = state.tasks.filter((task) => task.group === "core");
-  const support = state.tasks.filter((task) => task.group === "support");
+  const timeline = [
+    ["pre_arrival", "到港前", "先保通信、证件材料、临时住宿和交通支付。"],
+    ["first_week", "抵港第一周", "处理长期联系方式、学校报到、住处与材料、HKID 预约和租房风险。"],
+    ["first_month", "抵港第一个月", "稳定住处后，再确认银行、医疗、社区和 NGO 服务入口。"]
+  ];
   return `
     <section class="page-head">
       <p class="eyebrow">P1 第一月任务路线图</p>
       <h1>${state.profile.user_group} · ${state.profile.arrival_stage}</h1>
-      <p class="subtle">当前卡点：${state.profile.main_blocker}。路线图展示 8 个任务，其中住址证明进入深水区。</p>
+      <p class="subtle">当前主线：先按到港前 / 第一周 / 第一个月生成任务路线图，再进入“住处与材料”深水区。</p>
       <div class="stats">
-        <span>8 个任务</span><span>2 个必做</span><span>2 个红色风险</span><span>本地 mock 可跑</span>
+        <span>8 个任务</span><span>3 个时间段</span><span>住处与材料做深</span><span>本地 mock 可跑</span>
       </div>
     </section>
-    <section class="section-band">
-      <div class="section-title"><h2>核心办事任务</h2><button class="ghost" data-action="open-source-current">查看路线图来源</button></div>
-      <div class="task-grid featured">${core.map(renderTaskCard).join("")}</div>
-    </section>
-    <section class="section-band">
-      <div class="section-title"><h2>辅助事项</h2></div>
-      <div class="task-grid compact">${support.map(renderTaskCard).join("")}</div>
-    </section>
+    ${timeline
+      .map(([stage, title, desc]) => {
+        const tasks = state.tasks.filter((task) => task.stage === stage);
+        return `
+          <section class="section-band">
+            <div class="section-title"><div><h2>${title}</h2><p class="subtle">${desc}</p></div><button class="ghost" data-action="open-source-current">查看路线图来源</button></div>
+            <div class="task-grid ${stage === "first_month" ? "compact" : "featured"}">${tasks.map(renderTaskCard).join("")}</div>
+          </section>
+        `;
+      })
+      .join("")}
     <section class="external-row">
       ${["OpenRice / 吃饭", "HKTVmall / 购物", "Google Maps / 地点", "Career Center / 找工作"]
         .map((item) => `<span>${item}</span>`)
@@ -247,7 +259,6 @@ function renderRoadmap() {
     </section>
   `;
 }
-
 function renderTaskCard(task) {
   return `
     <article class="task-card ${task.task_depth === "deep" ? "deep" : ""}">
@@ -272,7 +283,7 @@ function renderTaskCard(task) {
 
 function renderTaskDetail() {
   const task = getTask();
-  const isDeep = task.task_id === "address_proof_001";
+  const isDeep = task.task_id === "housing_materials_001";
   return `
     <section class="panel">
       <button class="link-btn" data-page="P1">← 返回路线图</button>
@@ -286,7 +297,7 @@ function renderTaskDetail() {
       <div class="detail-grid">
         <div>
           <h2>为什么推荐</h2>
-          <p>你提到 HKID、学校注册和之后开户都可能涉及地址信息。这里先把用途拆开，再整理可咨询的机构和来源。</p>
+          <p>你还没稳定租房，也没办香港电话卡。路线图会先处理到港前和第一周任务；进入这里后，再把租房、地址信息、住址证明和学校/银行/政府材料确认拆开。</p>
         </div>
         <div>
           <h2>下一步行动</h2>
@@ -300,7 +311,7 @@ function renderTaskDetail() {
       <div class="button-row">
         ${
           isDeep
-            ? '<button class="primary" data-page="P3">开始匹配材料</button>'
+            ? '<button class="primary" data-page="P3">进入住处与材料追问</button>'
             : '<button class="primary" data-page="P1">保存并返回路线图</button>'
         }
         <button class="secondary" data-open-sources="${task.source_ids.join(",")}">查看可信来源</button>
@@ -310,9 +321,14 @@ function renderTaskDetail() {
 }
 
 function renderMatcher() {
+  const phaseOptions = [
+    ["pre_arrival", "抵港前"],
+    ["arrival_week", "抵港第一周"],
+    ["first_month", "抵港第一个月"]
+  ];
   const purposeOptions = [
-    ["school_registration", "学校注册"],
-    ["hkid", "HKID"],
+    ["school_registration", "学校注册 / 资料更新"],
+    ["hkid", "HKID / 政府服务"],
     ["bank_account", "银行开户"]
   ];
   const materialOptions = [
@@ -324,36 +340,39 @@ function renderMatcher() {
     ["no_document", "暂时没有"]
   ];
   const livingOptions = [
+    ["not_decided", "未确定"],
+    ["temporary_stay", "酒店 / 短租"],
+    ["off_campus_rental", "看房中 / 校外租房"],
     ["school_hall", "学校宿舍"],
-    ["off_campus_rental", "校外租房"],
-    ["family_or_friend_home", "亲友家"],
-    ["temporary_stay", "酒店 / 短租"]
+    ["family_or_friend_home", "亲友家"]
   ];
 
   return `
     <section class="page-head">
       <button class="link-btn" data-page="P2">← 返回任务详情</button>
-      <p class="eyebrow">P3 住址证明材料匹配器</p>
-      <h1>先按用途确认，不直接猜材料是否有效</h1>
+      <p class="eyebrow">P3 住处与材料追问</p>
+      <h1>先确认阶段和住处，再按用途拆材料问题</h1>
+      <p class="subtle">住址证明不是第一步本身，而是住处、租房、学校/银行/政府材料确认里的关键卡点。</p>
     </section>
     <section class="matcher-layout">
       <div class="panel form-panel">
-        <h2>Step 1 / 3 用途</h2>
-        <div class="check-grid">${purposeOptions.map(([value, label]) => renderCheckbox("purposes", value, label)).join("")}</div>
-        <h2>Step 2 / 3 材料</h2>
-        <div class="check-grid">${materialOptions.map(([value, label]) => renderCheckbox("materials", value, label)).join("")}</div>
-        <h2>Step 3 / 3 居住状态</h2>
-        <div class="choice-row">${livingOptions
-          .map(
-            ([value, label]) =>
-              `<button class="chip ${state.matcher.living_status === value ? "selected" : ""}" data-living="${value}">${label}</button>`
-          )
+        <h2>Step 1 / 4 你现在处在哪个阶段？</h2>
+        <div class="choice-row">${phaseOptions
+          .map(([value, label]) => `<button class="chip ${state.matcher.arrival_phase === value ? "selected" : ""}" data-phase="${value}">${label}</button>`)
           .join("")}</div>
+        <h2>Step 2 / 4 你现在的住处状态？</h2>
+        <div class="choice-row">${livingOptions
+          .map(([value, label]) => `<button class="chip ${state.matcher.living_status === value ? "selected" : ""}" data-living="${value}">${label}</button>`)
+          .join("")}</div>
+        <h2>Step 3 / 4 可能涉及哪些用途？</h2>
+        <div class="check-grid">${purposeOptions.map(([value, label]) => renderCheckbox("purposes", value, label)).join("")}</div>
+        <h2>Step 4 / 4 你目前有哪些地址相关材料？</h2>
+        <div class="check-grid">${materialOptions.map(([value, label]) => renderCheckbox("materials", value, label)).join("")}</div>
       </div>
       <div class="panel result-panel">
-        <p class="eyebrow">匹配结果</p>
-        <h2>结论：需要按用途分开确认</h2>
-        <p class="subtle">当前已匹配 ${state.matcher.matchedRules.length} 条规则，全部输出 <code>needs_confirm</code>。</p>
+        <p class="eyebrow">住处与材料结果</p>
+        <h2>结论：先稳住任务顺序，再按用途分开确认</h2>
+        <p class="subtle">当前阶段：${labels.phase[state.matcher.arrival_phase]}；住处状态：${labels.living[state.matcher.living_status]}。已匹配 ${state.matcher.matchedRules.length} 条材料规则，全部输出 <code>needs_confirm</code>。</p>
         ${state.matcher.matchedRules.map(renderRuleResult).join("")}
         <div class="button-row">
           <button class="primary" data-page="P4">查看可信来源</button>
@@ -363,7 +382,6 @@ function renderMatcher() {
     </section>
   `;
 }
-
 function renderCheckbox(key, value, label) {
   const checked = state.matcher[key].includes(value) ? "checked" : "";
   return `
@@ -509,6 +527,9 @@ function bindEvents() {
   });
   document.querySelectorAll("[data-living]").forEach((button) => {
     button.addEventListener("click", () => updateMatcher("living_status", button.dataset.living));
+  });
+  document.querySelectorAll("[data-phase]").forEach((button) => {
+    button.addEventListener("click", () => updateMatcher("arrival_phase", button.dataset.phase));
   });
   document.querySelectorAll("[data-check-key]").forEach((input) => {
     input.addEventListener("change", () => updateMatcher(input.dataset.checkKey, input.dataset.checkValue, input.checked));
