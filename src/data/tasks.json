@@ -9,11 +9,22 @@
     "risk_level": "green",
     "status": "can_act",
     "task_depth": "light",
-    "source_ids": ["HK-S-003"],
+    "source_ids": [
+      "HK-S-003"
+    ],
     "summary": "先确认内地号码漫游、香港电话卡方案和学校/银行验证码接收方式。",
-    "next_steps": ["开通或确认内地手机号漫游", "准备香港电话卡或到港购买点", "列出学校、银行、邮箱的验证码方式"],
-    "required_inputs": ["phone_status"],
-    "fallback_channels": ["电讯商客服", "学校 IT Helpdesk"]
+    "next_steps": [
+      "开通或确认内地手机号漫游",
+      "准备香港电话卡或到港购买点",
+      "列出学校、银行、邮箱的验证码方式"
+    ],
+    "required_inputs": [
+      "phone_status"
+    ],
+    "fallback_channels": [
+      "电讯商客服",
+      "学校 IT Helpdesk"
+    ]
   },
   {
     "task_id": "entry_documents_001",
@@ -25,15 +36,29 @@
     "risk_level": "yellow",
     "status": "can_act",
     "task_depth": "light",
-    "source_ids": ["HK-S-209-IMMD-HKID", "HK-S-208-1823-CONTACT"],
+    "source_ids": [
+      "HK-S-209-IMMD-HKID",
+      "HK-S-208-1823-CONTACT"
+    ],
     "summary": "把录取信、签证/入境材料、临时住址或住宿材料先放到一个办事文件夹。",
-    "next_steps": ["保存录取信和入境材料", "整理学校报到可能需要的文件", "不要用攻略替代学校或政府要求"],
-    "required_inputs": ["admission_status", "visa_status"],
-    "fallback_channels": ["学校 Registry", "入境处", "1823"]
+    "next_steps": [
+      "保存录取信和入境材料",
+      "整理学校报到可能需要的文件",
+      "不要用攻略替代学校或政府要求"
+    ],
+    "required_inputs": [
+      "admission_status",
+      "visa_status"
+    ],
+    "fallback_channels": [
+      "学校 Registry",
+      "入境处",
+      "1823"
+    ]
   },
   {
     "task_id": "transport_payment_001",
-    "title": "交通和八达通上手",
+    "title": "交通、八达通和天气提醒",
     "category": "transport",
     "group": "timeline",
     "stage": "pre_arrival",
@@ -41,11 +66,27 @@
     "risk_level": "green",
     "status": "can_act",
     "task_depth": "light",
-    "source_ids": ["HK-S-003"],
-    "summary": "先解决机场到住处、日常交通支付和路线查询。",
-    "next_steps": ["准备八达通或移动支付", "保存机场到临时住处/学校路线", "查看港铁和巴士官方入口"],
-    "required_inputs": ["district"],
-    "fallback_channels": ["港铁客服", "学校迎新入口"]
+    "source_ids": [
+      "HK-S-301-HKEMOBILITY",
+      "HK-S-305-HKO-WEATHER",
+      "HK-S-306-OCTOPUS"
+    ],
+    "summary": "先解决机场到住处、日常交通支付和天气预警。交通/天气属于低风险工具增强，最终以官方应用和实时公告为准。",
+    "next_steps": [
+      "保存机场到临时住处/学校路线",
+      "准备八达通或移动支付方案",
+      "出发前查看天气警告和交通服务状态",
+      "把实时路线和天气留作 ToolHub 增强位"
+    ],
+    "required_inputs": [
+      "district"
+    ],
+    "fallback_channels": [
+      "HKeMobility",
+      "香港天文台",
+      "八达通官方入口",
+      "学校迎新入口"
+    ]
   },
   {
     "task_id": "housing_materials_001",
@@ -57,11 +98,29 @@
     "risk_level": "yellow",
     "status": "needs_info",
     "task_depth": "deep",
-    "source_ids": ["HK-S-208-1823-CONTACT", "HK-S-211-HKMA-ACCOUNT-INFO", "HK-A-701-HKUST-SHRLO-ADDRESS"],
+    "source_ids": [
+      "HK-S-208-1823-CONTACT",
+      "HK-S-211-HKMA-ACCOUNT-INFO",
+      "HK-A-701-HKUST-SHRLO-ADDRESS"
+    ],
     "summary": "先处理临时住宿、找房/签约、地址信息，再按学校、政府、银行用途确认材料要求。",
-    "next_steps": ["确认当前住处状态", "整理已有地址相关材料", "按学校/政府/银行分别生成咨询问题"],
-    "required_inputs": ["arrival_phase", "housing_status", "purpose", "materials"],
-    "fallback_channels": ["学校学生事务处", "1823", "目标银行", "18222"]
+    "next_steps": [
+      "确认当前住处状态",
+      "整理已有地址相关材料",
+      "按学校/政府/银行分别生成咨询问题"
+    ],
+    "required_inputs": [
+      "arrival_phase",
+      "housing_status",
+      "purpose",
+      "materials"
+    ],
+    "fallback_channels": [
+      "学校学生事务处",
+      "1823",
+      "目标银行",
+      "18222"
+    ]
   },
   {
     "task_id": "school_checkin_001",
@@ -73,11 +132,25 @@
     "risk_level": "yellow",
     "status": "needs_confirm",
     "task_depth": "light",
-    "source_ids": ["HK-A-701-HKUST-SHRLO-ADDRESS", "HK-A-702-CUHK-PGH-ADDRESS"],
+    "source_ids": [
+      "HK-A-701-HKUST-SHRLO-ADDRESS",
+      "HK-A-702-CUHK-PGH-ADDRESS"
+    ],
     "summary": "不同学校对报到、学生记录、地址资料和证明文件要求不同，要看本校官方入口。",
-    "next_steps": ["打开本校报到或 Registry 入口", "确认是否需要更新通讯地址", "询问宿舍/学生事务处可否出具地址相关证明"],
-    "required_inputs": ["school", "housing_status"],
-    "fallback_channels": ["学生事务处", "宿舍办公室", "Registry"]
+    "next_steps": [
+      "打开本校报到或 Registry 入口",
+      "确认是否需要更新通讯地址",
+      "询问宿舍/学生事务处可否出具地址相关证明"
+    ],
+    "required_inputs": [
+      "school",
+      "housing_status"
+    ],
+    "fallback_channels": [
+      "学生事务处",
+      "宿舍办公室",
+      "Registry"
+    ]
   },
   {
     "task_id": "rental_scam_001",
@@ -89,11 +162,28 @@
     "risk_level": "red",
     "status": "high_risk_pause",
     "task_depth": "light",
-    "source_ids": ["HK-S-003"],
-    "summary": "租房付款、押金、远程看房要先做风险核验，疑似诈骗转 18222 或警方入口。",
-    "next_steps": ["保存聊天和付款记录", "核对业主或中介身份", "怀疑诈骗时先暂停付款"],
-    "required_inputs": ["listing_url", "payment_request"],
-    "fallback_channels": ["18222", "999", "学校住宿办公室"]
+    "source_ids": [
+      "HK-S-401-ADCC-18222",
+      "HK-S-402-POLICE-REPORT",
+      "HK-S-208-1823-CONTACT"
+    ],
+    "summary": "线上找房、远程签约、押金转账都先做风险核验。疑似诈骗时不判断真假，先暂停付款并转 18222、警方或学校住宿办公室。",
+    "next_steps": [
+      "付款前保存广告、聊天、账号和收款资料",
+      "核对业主/中介身份，警惕只催转账不让实地核验",
+      "怀疑诈骗时先暂停付款",
+      "用 18222 或警方入口确认下一步"
+    ],
+    "required_inputs": [
+      "listing_url",
+      "payment_request"
+    ],
+    "fallback_channels": [
+      "18222",
+      "999",
+      "警署报案室",
+      "学校住宿办公室"
+    ]
   },
   {
     "task_id": "hkid_001",
@@ -105,15 +195,28 @@
     "risk_level": "red",
     "status": "can_act",
     "task_depth": "light",
-    "source_ids": ["HK-S-209-IMMD-HKID", "HK-S-208-1823-CONTACT"],
+    "source_ids": [
+      "HK-S-209-IMMD-HKID",
+      "HK-S-208-1823-CONTACT"
+    ],
     "summary": "查看入境处官方入口，确认自己应何时办理和预约。",
-    "next_steps": ["打开入境处 HKID 官方入口", "核对到港日期和身份类别", "不要用非官方攻略替代申请要求"],
-    "required_inputs": ["arrival_date", "visa_status"],
-    "fallback_channels": ["入境处", "1823"]
+    "next_steps": [
+      "打开入境处 HKID 官方入口",
+      "核对到港日期和身份类别",
+      "不要用非官方攻略替代申请要求"
+    ],
+    "required_inputs": [
+      "arrival_date",
+      "visa_status"
+    ],
+    "fallback_channels": [
+      "入境处",
+      "1823"
+    ]
   },
   {
     "task_id": "bank_medical_community_001",
-    "title": "第一个月：银行、医疗和社区入口",
+    "title": "医疗、银行和社区 / NGO 入口",
     "category": "settling_in",
     "group": "timeline",
     "stage": "first_month",
@@ -121,10 +224,30 @@
     "risk_level": "yellow",
     "status": "needs_confirm",
     "task_depth": "light",
-    "source_ids": ["HK-S-211-HKMA-ACCOUNT-INFO", "HK-S-212-HKMA-FAQ-ADDRESS", "HK-S-003"],
-    "summary": "稳定住处后，再按银行开户、医疗入口、社区/NGO 支持逐项确认。",
-    "next_steps": ["选择目标银行并查看官方开户入口", "保存紧急电话和学校医疗入口", "需要社区支持时联系 NGO 或 IFSC"],
-    "required_inputs": ["target_bank", "district", "support_need"],
-    "fallback_channels": ["目标银行", "999", "IFSC", "HKCSS"]
+    "source_ids": [
+      "HK-S-211-HKMA-ACCOUNT-INFO",
+      "HK-S-501-HA-GO",
+      "HK-S-502-SWD-IFSC",
+      "HK-S-503-HAD-NEW-ARRIVALS"
+    ],
+    "summary": "稳定住处后，再处理银行开户、医疗入口、社区/NGO 支持。医疗问题不做诊断，紧急情况直接 999 或急症室。",
+    "next_steps": [
+      "选择目标银行并查看官方开户入口",
+      "保存 999、学校医疗入口和 HA Go / 医管局入口",
+      "需要社区或家庭支持时查 IFSC 或新来港服务入口",
+      "医疗症状和紧急风险转专业机构，不让 AI 下诊断"
+    ],
+    "required_inputs": [
+      "target_bank",
+      "district",
+      "support_need"
+    ],
+    "fallback_channels": [
+      "目标银行",
+      "999",
+      "医管局 / HA Go",
+      "IFSC",
+      "HAD 新来港服务"
+    ]
   }
 ]

@@ -6,8 +6,15 @@
     "source_type": "government_hotline",
     "owner": "Hong Kong Government",
     "url": "https://www.1823.gov.hk/en",
-    "task_tags": ["government_service", "fallback", "address_proof"],
-    "user_group_tags": ["newcomer", "student"],
+    "task_tags": [
+      "government_service",
+      "fallback",
+      "address_proof"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student"
+    ],
     "answer_allowed": true,
     "last_verified_at": "2026-07-22",
     "final_decision_maker": "Relevant government department",
@@ -20,8 +27,14 @@
     "source_type": "government_department",
     "owner": "Transport Department",
     "url": "https://www.td.gov.hk/en/public_services/licences_and_permits/proof_of_address/index.html",
-    "task_tags": ["address_proof", "government_service"],
-    "user_group_tags": ["newcomer", "student"],
+    "task_tags": [
+      "address_proof",
+      "government_service"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student"
+    ],
     "answer_allowed": true,
     "last_verified_at": "2026-07-22",
     "final_decision_maker": "Transport Department",
@@ -34,8 +47,15 @@
     "source_type": "government_enquiry",
     "owner": "1823",
     "url": "https://www.1823.gov.hk/en/contact-us",
-    "task_tags": ["address_proof", "government_service", "fallback"],
-    "user_group_tags": ["newcomer", "student"],
+    "task_tags": [
+      "address_proof",
+      "government_service",
+      "fallback"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student"
+    ],
     "answer_allowed": true,
     "last_verified_at": "2026-07-22",
     "final_decision_maker": "Relevant government department",
@@ -48,8 +68,15 @@
     "source_type": "government_department",
     "owner": "Immigration Department",
     "url": "https://www.immd.gov.hk/eng/services/hkid/reg_replace.html",
-    "task_tags": ["hkid", "government_service", "address_proof"],
-    "user_group_tags": ["newcomer", "student"],
+    "task_tags": [
+      "hkid",
+      "government_service",
+      "address_proof"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student"
+    ],
     "answer_allowed": true,
     "last_verified_at": "2026-07-22",
     "final_decision_maker": "Immigration Department",
@@ -62,8 +89,15 @@
     "source_type": "government_department",
     "owner": "Immigration Department",
     "url": "https://www.immd.gov.hk/eng/forms/forms/rop18a.html",
-    "task_tags": ["address_update", "government_service", "address_proof"],
-    "user_group_tags": ["newcomer", "student"],
+    "task_tags": [
+      "address_update",
+      "government_service",
+      "address_proof"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student"
+    ],
     "answer_allowed": true,
     "last_verified_at": "2026-07-22",
     "final_decision_maker": "Immigration Department",
@@ -76,8 +110,14 @@
     "source_type": "statutory_body",
     "owner": "Hong Kong Monetary Authority",
     "url": "https://www.hkma.gov.hk/eng/smart-consumers/account-opening/information-required/",
-    "task_tags": ["address_proof", "bank_account"],
-    "user_group_tags": ["newcomer", "student"],
+    "task_tags": [
+      "address_proof",
+      "bank_account"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student"
+    ],
     "answer_allowed": true,
     "last_verified_at": "2026-07-22",
     "final_decision_maker": "Target bank",
@@ -90,8 +130,14 @@
     "source_type": "statutory_body",
     "owner": "Hong Kong Monetary Authority",
     "url": "https://www.hkma.gov.hk/eng/smart-consumers/frequently-asked-questions/banking/j1/5/",
-    "task_tags": ["address_proof", "bank_account"],
-    "user_group_tags": ["newcomer", "student"],
+    "task_tags": [
+      "address_proof",
+      "bank_account"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student"
+    ],
     "answer_allowed": true,
     "last_verified_at": "2026-07-22",
     "final_decision_maker": "Target bank",
@@ -99,72 +145,277 @@
   },
   {
     "source_id": "HK-A-701-HKUST-SHRLO-ADDRESS",
-    "name": "HKUST SHRLO: Address Proof Self Service",
+    "name": "School example: HKUST hall address proof path",
     "source_level": "A",
-    "source_type": "school_housing",
-    "owner": "HKUST Student Housing and Residential Life Office",
+    "source_type": "school_example",
+    "owner": "Example school housing office",
     "url": "https://shrl.hkust.edu.hk/residential-halls/hall-life/living-tips",
-    "task_tags": ["address_proof", "school_housing", "student"],
-    "user_group_tags": ["mainland_student", "non_local_student"],
+    "task_tags": [
+      "address_proof",
+      "school_housing",
+      "student"
+    ],
+    "user_group_tags": [
+      "mainland_student",
+      "non_local_student"
+    ],
     "answer_allowed": true,
     "last_verified_at": "2026-07-22",
-    "final_decision_maker": "HKUST SHRLO and target institution",
-    "boundary_note": "Supports HKUST hall resident path only; target institution must confirm acceptance."
+    "final_decision_maker": "User's own school office and target institution",
+    "boundary_note": "Example only. Each school has different offices and rules; users must check their own school's student affairs, housing office or Registry."
   },
   {
     "source_id": "HK-A-702-CUHK-PGH-ADDRESS",
-    "name": "CUHK PGH: Living in PGH FAQ",
+    "name": "School example: CUHK postgraduate hall address proof path",
     "source_level": "A",
-    "source_type": "school_housing",
-    "owner": "CUHK Postgraduate Halls",
+    "source_type": "school_example",
+    "owner": "Example school housing office",
     "url": "https://www.pgh.cuhk.edu.hk/tc/faq/living-in-pgh/",
-    "task_tags": ["address_proof", "school_housing", "student"],
-    "user_group_tags": ["mainland_student", "non_local_student"],
+    "task_tags": [
+      "address_proof",
+      "school_housing",
+      "student"
+    ],
+    "user_group_tags": [
+      "mainland_student",
+      "non_local_student"
+    ],
     "answer_allowed": true,
     "last_verified_at": "2026-07-22",
-    "final_decision_maker": "CUHK PGH Office and target institution",
-    "boundary_note": "Supports CUHK PGH resident path only; colleges and halls may differ."
+    "final_decision_maker": "User's own school office and target institution",
+    "boundary_note": "Example only. Hall, college and programme rules may differ; do not treat this as a universal school requirement."
   },
   {
     "source_id": "HK-A-703-POLYU-BANK-ADDRESS",
-    "name": "PolyU SAO: Opening a Bank Account",
+    "name": "School example: PolyU non-local student bank account guide",
     "source_level": "A",
-    "source_type": "school_student_affairs",
-    "owner": "PolyU Student Affairs Office",
+    "source_type": "school_example",
+    "owner": "Example school student affairs office",
     "url": "https://www.polyu.edu.hk/sao/student-resources-and-support-section/non-local-student-services/settling-in/opening-a-bank-account/",
-    "task_tags": ["address_proof", "bank_account", "student"],
-    "user_group_tags": ["mainland_student", "non_local_student"],
+    "task_tags": [
+      "address_proof",
+      "bank_account",
+      "student"
+    ],
+    "user_group_tags": [
+      "mainland_student",
+      "non_local_student"
+    ],
     "answer_allowed": true,
     "last_verified_at": "2026-07-22",
-    "final_decision_maker": "Target bank",
-    "boundary_note": "School-provided student guidance; other banks may require different documents."
+    "final_decision_maker": "User's own school and target bank",
+    "boundary_note": "Example only. School guidance may help prepare questions, but exact bank and school requirements must be confirmed."
   },
   {
     "source_id": "HK-A-704-HKBU-RESIDENTIAL-PROOF",
-    "name": "HKBU Student Residence Halls: Check-in Procedures",
+    "name": "School example: HKBU residential proof during hall check-in",
     "source_level": "A",
-    "source_type": "school_housing",
-    "owner": "HKBU Student Accommodation Section",
+    "source_type": "school_example",
+    "owner": "Example school accommodation office",
     "url": "https://sa.hkbu.edu.hk/en/accm/on-campus-accommodation/student-residence-halls/check-in-procedures.html",
-    "task_tags": ["address_proof", "school_housing", "student"],
-    "user_group_tags": ["mainland_student", "non_local_student"],
+    "task_tags": [
+      "address_proof",
+      "school_housing",
+      "student"
+    ],
+    "user_group_tags": [
+      "mainland_student",
+      "non_local_student"
+    ],
     "answer_allowed": true,
     "last_verified_at": "2026-07-22",
-    "final_decision_maker": "HKBU Student Accommodation Section and target institution",
-    "boundary_note": "Supports HKBU non-local freshmen hall path only."
+    "final_decision_maker": "User's own school office and target institution",
+    "boundary_note": "Example only. It supports one school scenario, not a general rule for all universities or external institutions."
   },
   {
     "source_id": "HK-A-705-EDUHK-BANK-ADDRESS",
-    "name": "EdUHK GAO FAQ: Bank Account Documents",
+    "name": "School example: EdUHK FAQ for non-local student bank documents",
     "source_level": "A",
-    "source_type": "school_student_affairs",
-    "owner": "EdUHK Global Affairs Office",
+    "source_type": "school_example",
+    "owner": "Example school global affairs office",
     "url": "https://www.eduhk.hk/gao/articles/faqs",
-    "task_tags": ["address_proof", "bank_account", "student"],
-    "user_group_tags": ["mainland_student", "non_local_student"],
+    "task_tags": [
+      "address_proof",
+      "bank_account",
+      "student"
+    ],
+    "user_group_tags": [
+      "mainland_student",
+      "non_local_student"
+    ],
     "answer_allowed": true,
     "last_verified_at": "2026-07-22",
-    "final_decision_maker": "Target bank",
-    "boundary_note": "School FAQ for non-local students; exact bank acceptance must be confirmed."
+    "final_decision_maker": "User's own school and target bank",
+    "boundary_note": "Example only. Use this to show the kind of school page to look for; users still need their own school and bank confirmation."
+  },
+  {
+    "source_id": "HK-S-301-HKEMOBILITY",
+    "name": "HKeMobility: Hong Kong transport information",
+    "source_level": "S",
+    "source_type": "transport_tool",
+    "owner": "Transport Department",
+    "url": "https://www.hkemobility.gov.hk/",
+    "task_tags": [
+      "transport",
+      "route",
+      "first_week"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student"
+    ],
+    "answer_allowed": true,
+    "last_verified_at": "2026-07-23",
+    "final_decision_maker": "Transport Department and transport operators",
+    "boundary_note": "Use as official transport information entry; real-time service status should be checked in the official app or operator notices."
+  },
+  {
+    "source_id": "HK-S-305-HKO-WEATHER",
+    "name": "Hong Kong Observatory: Weather warnings and forecast",
+    "source_level": "S",
+    "source_type": "weather_tool",
+    "owner": "Hong Kong Observatory",
+    "url": "https://www.hko.gov.hk/en/index.html",
+    "task_tags": [
+      "weather",
+      "safety",
+      "first_week"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student"
+    ],
+    "answer_allowed": true,
+    "last_verified_at": "2026-07-23",
+    "final_decision_maker": "Hong Kong Observatory and relevant service operators",
+    "boundary_note": "Weather warnings can affect travel and school arrangements; always follow the latest official warning and institution notices."
+  },
+  {
+    "source_id": "HK-S-306-OCTOPUS",
+    "name": "Octopus: official customer service entry",
+    "source_level": "A",
+    "source_type": "payment_tool",
+    "owner": "Octopus Cards Limited",
+    "url": "https://www.octopus.com.hk/en/consumer/customer-service/index.html",
+    "task_tags": [
+      "transport",
+      "payment",
+      "octopus"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student"
+    ],
+    "answer_allowed": true,
+    "last_verified_at": "2026-07-23",
+    "final_decision_maker": "Octopus Cards Limited",
+    "boundary_note": "Use as payment tool entry only; do not treat commercial payment pages as government or school policy sources."
+  },
+  {
+    "source_id": "HK-S-401-ADCC-18222",
+    "name": "Anti-Deception Coordination Centre: 18222",
+    "source_level": "S",
+    "source_type": "anti_fraud_hotline",
+    "owner": "Hong Kong Police Force",
+    "url": "https://www.adcc.gov.hk/en-hk/anti-deception-help-centre.html",
+    "task_tags": [
+      "rental_scam",
+      "fraud",
+      "housing_safety"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student"
+    ],
+    "answer_allowed": true,
+    "last_verified_at": "2026-07-23",
+    "final_decision_maker": "Hong Kong Police Force",
+    "boundary_note": "High-risk fraud cases should be routed to police or 18222; the demo does not judge whether a specific listing is genuine."
+  },
+  {
+    "source_id": "HK-S-402-POLICE-REPORT",
+    "name": "Hong Kong Police Force: report a crime",
+    "source_level": "S",
+    "source_type": "police_emergency",
+    "owner": "Hong Kong Police Force",
+    "url": "https://www.police.gov.hk/ppp_en/02_er_room/index.html",
+    "task_tags": [
+      "fraud",
+      "emergency",
+      "housing_safety"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student"
+    ],
+    "answer_allowed": true,
+    "last_verified_at": "2026-07-23",
+    "final_decision_maker": "Hong Kong Police Force",
+    "boundary_note": "Use for crime reporting or emergency routing. Immediate danger should use 999."
+  },
+  {
+    "source_id": "HK-S-501-HA-GO",
+    "name": "Hospital Authority / HA Go service entry",
+    "source_level": "S",
+    "source_type": "healthcare_entry",
+    "owner": "Hospital Authority",
+    "url": "https://www.ha.org.hk/visitor/ha_visitor_index.asp?Content_ID=235385&Lang=ENG",
+    "task_tags": [
+      "medical",
+      "healthcare",
+      "first_month"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student"
+    ],
+    "answer_allowed": true,
+    "last_verified_at": "2026-07-23",
+    "final_decision_maker": "Hospital Authority and medical professionals",
+    "boundary_note": "Use as healthcare service entry only. The demo must not provide diagnosis; urgent cases should seek emergency help."
+  },
+  {
+    "source_id": "HK-S-502-SWD-IFSC",
+    "name": "SWD: Integrated Family Service Centres",
+    "source_level": "S",
+    "source_type": "social_service_entry",
+    "owner": "Social Welfare Department",
+    "url": "https://www.swd.gov.hk/en/pubsvc/family/cat_families/familyandchildwelfare/ifsc/",
+    "task_tags": [
+      "community_support",
+      "ngo",
+      "family_service"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student",
+      "family"
+    ],
+    "answer_allowed": true,
+    "last_verified_at": "2026-07-23",
+    "final_decision_maker": "Social Welfare Department or service operator",
+    "boundary_note": "Use for service navigation and referral preparation; eligibility and service arrangement depend on the responsible service unit."
+  },
+  {
+    "source_id": "HK-S-503-HAD-NEW-ARRIVALS",
+    "name": "HAD: Support services for new arrivals",
+    "source_level": "S",
+    "source_type": "newcomer_service_entry",
+    "owner": "Home Affairs Department",
+    "url": "https://www.had.gov.hk/en/public_services/services_for_new_arrivals_from_the_mainland/new_arrivals.htm",
+    "task_tags": [
+      "new_arrivals",
+      "community_support",
+      "ngo"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student",
+      "family"
+    ],
+    "answer_allowed": true,
+    "last_verified_at": "2026-07-23",
+    "final_decision_maker": "Home Affairs Department and listed service providers",
+    "boundary_note": "Use as newcomer service directory; it does not replace direct confirmation with the service provider."
   }
 ]

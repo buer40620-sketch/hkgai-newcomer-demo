@@ -1,9 +1,12 @@
+﻿import { enhanceProfileInput, polishConsultationQuestions } from "./apiClient.js";
+
 const app = document.querySelector("#app");
 
 const state = {
   page: "P0",
   selectedTaskId: "housing_materials_001",
   selectedSourceIds: [],
+  previousPage: "P1",
   tasks: [],
   sources: [],
   rules: [],
@@ -22,9 +25,56 @@ const state = {
     living_status: "temporary_stay",
     matchedRules: []
   },
-  copied: false
+  copied: false,
+  completedTaskIds: [],
+  lastSavedSummary: null,
+  api: {
+    isLoading: false,
+    lastProfileRun: null,
+    lastQuestionRun: null,
+    polishedQuestions: null
+  }
 };
 
+
+const widthEnhancementBadges = {
+  transport_payment_001: {
+    label: "宽度增强 · 工具入口",
+    short: "工具增强",
+    note: "交通 / 天气 / 八达通"
+  },
+  rental_scam_001: {
+    label: "宽度增强 · 高风险兜底",
+    short: "风险兜底",
+    note: "租房防骗 / 18222"
+  },
+  bank_medical_community_001: {
+    label: "宽度增强 · 公共服务入口",
+    short: "服务入口",
+    note: "医疗 / 银行 / NGO"
+  }
+};
+
+const shallowTaskDetails = {
+  transport_payment_001: {
+    scene: "刚到香港时，交通不是政策判断题，而是行动工具题：先知道怎么到住处、怎么付费、天气会不会影响出行。",
+    hkgaiRole: ["把机场/学校/临时住处串成行动顺序", "提示查看官方交通和天气入口", "后续可接 ToolHub 做路线、票价、天气增强"],
+    boundary: "港话通不替代实时路线规划。交通时间、服务状态和天气警告以 HKeMobility、香港天文台和运营机构最新信息为准。",
+    enhancement: "可扩展：ToolHub 交通路线、票价、天气预警。"
+  },
+  rental_scam_001: {
+    scene: "远程找房、押金转账和线上签约是新来港学生的红色风险点。这里不判断房源真假，而是先让用户停下来做核验。",
+    hkgaiRole: ["识别付款、押金、远程签约等高风险信号", "提示保存证据和暂停付款", "把用户转到 18222、警方或学校住宿办公室"],
+    boundary: "港话通不能判断某个业主、中介、链接或账户一定真假。涉及诈骗、人身安全或财产损失时，应联系 18222、警方或紧急服务。",
+    enhancement: "可扩展：风险清单、证据保存模板、18222 咨询问题。"
+  },
+  bank_medical_community_001: {
+    scene: "第一个月稳定下来后，用户会开始处理银行、医疗和社区支持。这里展示港话通能把公共服务入口分流，而不是只讲住址证明。",
+    hkgaiRole: ["把银行开户、医疗入口、社区/NGO 支持分成不同下一步", "医疗问题只做入口导航和安全提醒", "需要人工支持时转 IFSC、HAD 或服务机构"],
+    boundary: "医疗问题不做诊断；紧急情况直接 999 或急症室。银行开户和社区服务资格以目标机构或服务单位确认为准。",
+    enhancement: "可扩展：HA/急症室轮候、地区 NGO 列表、银行材料确认问题。"
+  }
+};
 const labels = {
   purpose: {
     school_registration: "学校注册",
@@ -97,6 +147,8 @@ async function boot() {
   state.rules = rules;
   state.templates = templates;
   state.matcher.matchedRules = matchRules();
+  state.api.polishedQuestions = null;
+  state.api.lastQuestionRun = null;
   render();
 }
 
@@ -107,6 +159,7 @@ async function fetchJson(path) {
 }
 
 function setPage(page) {
+  if (page !== state.page) state.previousPage = state.page;
   state.page = page;
   state.copied = false;
   render();
@@ -126,6 +179,35 @@ function sourceIdsForCurrentContext() {
   const taskIds = getTask()?.source_ids || [];
   return [...new Set([...ruleIds, ...taskIds])];
 }
+function describeSourceLevel(level) {
+  return {
+    S: "官方 / 法定机构",
+    A: "学校 / 公共机构",
+    B: "NGO / 服务机构",
+    C: "国际案例",
+    D: "痛点线索"
+  }[level] || "需确认来源";
+}
+
+function describeSourceType(type) {
+  return {
+    government_hotline: "政府查询入口",
+    government_department: "政府部门入口",
+    government_enquiry: "政府兜底查询",
+    statutory_body: "法定机构说明",
+    school_housing: "学校宿舍 / 住处材料",
+    school_student_affairs: "学校学生事务"
+  }[type] || "可信来源";
+}
+
+function groupSources(sources) {
+  const groups = [
+    ["官方 / 法定机构", sources.filter((source) => source.source_level === "S")],
+    ["学校样例 / 机构来源", sources.filter((source) => source.source_level === "A")],
+    ["服务与人工兜底", sources.filter((source) => !["S", "A"].includes(source.source_level))]
+  ].filter(([, items]) => items.length);
+  return groups.length ? groups : [["当前来源", sources]];
+}
 
 function matchRules() {
   return state.rules.filter((rule) =>
@@ -142,6 +224,8 @@ function updateMatcher(key, value, checked) {
     state.matcher[key] = [...list];
   }
   state.matcher.matchedRules = matchRules();
+  state.api.polishedQuestions = null;
+  state.api.lastQuestionRun = null;
   render();
 }
 
@@ -156,9 +240,23 @@ function openSources(sourceIds) {
 }
 
 function completeAddressLoop() {
+  const context = buildQuestionContext();
+  state.completedTaskIds = [...new Set([...state.completedTaskIds, "housing_materials_001"])];
+  state.lastSavedSummary = {
+    task_id: "housing_materials_001",
+    title: "住处与材料已生成确认问题",
+    context: `${context.phaseText} · ${context.livingText}`,
+    actions: ["已拆分学校 / 政府 / 银行用途", "已生成 3 类咨询问题", "下一步联系本校、1823 或目标银行确认"],
+    impacts: ["学校记录", "银行开户", "政府通知地址", "后续医疗和社区服务"]
+  };
   state.tasks = state.tasks.map((task) =>
     task.task_id === "housing_materials_001"
-      ? { ...task, status: "needs_confirm", next_steps: ["联系学校 / 1823 / 目标银行确认", "保存机构回复", "继续电话卡、HKID 和银行任务"] }
+      ? {
+          ...task,
+          status: "needs_confirm",
+          summary: "已完成住处状态、用途和材料拆分；下一步带着问题向本校、政府部门或目标银行确认。",
+          next_steps: ["联系本校学生事务处 / 宿舍办公室 / Registry", "用 1823 确认政府服务入口", "向目标银行确认开户地址材料", "保存机构回复，避免把样例来源当成通用规则"]
+        }
       : task
   );
   state.selectedTaskId = "housing_materials_001";
@@ -193,7 +291,7 @@ function renderShell(content) {
             .join("")}
         </nav>
         <div class="note">
-          主线保底使用本地 mock。先按时间线导航，再进入住处与材料深挖；材料问题只输出可能路径和需确认事项。
+          主线保底使用本地 mock。第 9 步先加入 API 适配层：可增强 P0 解析和 P5 问题润色，失败时自动回退。
         </div>
       </aside>
       <main class="main">${content}</main>
@@ -221,7 +319,11 @@ function renderWelcome() {
         <strong>可信提示</strong>
         <span>答案会标注官方来源、最终确认方和需要确认的边界。</span>
       </div>
-      <button class="primary" data-action="go-roadmap">生成我的路线图</button>
+      ${renderApiStatus("profile")}
+      <div class="button-row">
+        <button class="secondary" data-action="enhance-profile">${state.api.isLoading ? "解析中..." : "模拟 HKGAI 解析"}</button>
+        <button class="primary" data-action="go-roadmap">生成我的路线图</button>
+      </div>
     </section>
   `;
 }
@@ -240,7 +342,12 @@ function renderRoadmap() {
       <div class="stats">
         <span>8 个任务</span><span>3 个时间段</span><span>住处与材料做深</span><span>本地 mock 可跑</span>
       </div>
+      <div class="route-strip">
+        <span>到港前</span><span>抵港第一周</span><span>抵港第一个月</span><span class="deep-step">住处与材料重点深挖</span>
+      </div>
     </section>
+    ${renderWidthSummary()}
+    ${renderTaskMap(timeline)}
     ${timeline
       .map(([stage, title, desc]) => {
         const tasks = state.tasks.filter((task) => task.stage === stage);
@@ -259,25 +366,106 @@ function renderRoadmap() {
     </section>
   `;
 }
-function renderTaskCard(task) {
+function renderWidthSummary() {
+  const items = Object.entries(widthEnhancementBadges).map(([taskId, badge]) => {
+    const task = getTask(taskId);
+    return `
+      <button class="width-pill" data-open-task="${taskId}">
+        <strong>${badge.short}</strong>
+        <span>${badge.note}</span>
+        <small>${task?.title || "查看任务"}</small>
+      </button>
+    `;
+  });
+
   return `
-    <article class="task-card ${task.task_depth === "deep" ? "deep" : ""}">
+    <section class="width-summary" aria-label="本轮宽度增强">
+      <div>
+        <p class="eyebrow">本轮宽度增强</p>
+        <h2>同一人群下补 3 个浅层任务场景</h2>
+        <p class="subtle">不是新增第二人群，也不是把所有场景做深；先证明港话通能把交通、防骗、医疗社区入口纳入同一张第一月任务图。</p>
+      </div>
+      <div class="width-pill-row">${items.join("")}</div>
+    </section>
+  `;
+}
+
+function renderTaskMap(timeline) {
+  return `
+    <section class="task-map" aria-label="第一月任务地图">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">任务地图 / 轻探索版</p>
+          <h2>按时间线探索，不做复杂小游戏</h2>
+          <p class="subtle">每个节点都是一个可办任务。先看路线，再点节点进入详情；住处与材料保留为唯一深水区。</p>
+        </div>
+      </div>
+      <div class="map-lanes">
+        ${timeline
+          .map(([stage, title]) => {
+            const tasks = state.tasks.filter((task) => task.stage === stage);
+            return `
+              <div class="map-lane">
+                <div class="map-stage">${title}</div>
+                <div class="map-nodes">
+                  ${tasks
+                    .map(
+                      (task, index) => `
+                        <button class="map-node ${task.task_depth === "deep" ? "deep-node" : ""} ${widthEnhancementBadges[task.task_id] ? "width-node" : ""} ${task.risk_level}" data-open-task="${task.task_id}">
+                          <span>${index + 1}</span>
+                          <strong>${task.title}</strong>
+                          ${widthEnhancementBadges[task.task_id] ? `<em>${widthEnhancementBadges[task.task_id].short}</em>` : ""}
+                          <small>${labels.status[task.status]}</small>
+                        </button>
+                      `
+                    )
+                    .join("")}
+                </div>
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+function renderTaskCard(task) {
+  const completed = state.completedTaskIds.includes(task.task_id);
+  return `
+    <article class="task-card ${task.task_depth === "deep" ? "deep" : ""} ${shallowTaskDetails[task.task_id] ? "enhanced-light" : ""} ${completed ? "completed" : ""}">
       <div class="tag-row">
         <span class="badge priority">${labels.priority[task.priority]}</span>
         <span class="badge risk ${task.risk_level}">${labels.risk[task.risk_level]}</span>
         <span class="badge status">${labels.status[task.status]}</span>
+        ${widthEnhancementBadges[task.task_id] ? `<span class="badge width-badge">${widthEnhancementBadges[task.task_id].label}</span>` : ""}
+        ${completed ? '<span class="badge done">已生成咨询问题</span>' : ""}
       </div>
       <h3>${task.title}</h3>
       <p>${task.summary}</p>
+      ${completed ? renderSavedSummary() : ""}
       <div class="mini-meta">
         <span>${labels.stage[task.stage]}</span>
         <span>${task.source_ids.length} 个来源</span>
+        ${widthEnhancementBadges[task.task_id] ? `<span>${widthEnhancementBadges[task.task_id].note}</span>` : ""}
       </div>
       <div class="card-actions">
-        <button class="primary small" data-open-task="${task.task_id}">${task.task_depth === "deep" ? "进入匹配" : "查看步骤"}</button>
+        <button class="primary small" data-open-task="${task.task_id}">${task.task_depth === "deep" ? (completed ? "查看已整理结果" : "进入匹配") : "查看步骤"}</button>
         <button class="icon-btn" title="查看来源" data-open-sources="${task.source_ids.join(",")}">来源</button>
       </div>
     </article>
+  `;
+}
+
+function renderSavedSummary() {
+  const summary = state.lastSavedSummary;
+  if (!summary) return "";
+  return `
+    <div class="saved-summary">
+      <strong>${summary.title}</strong>
+      <p>${summary.context}</p>
+      <ul>${summary.actions.map((item) => `<li>${item}</li>`).join("")}</ul>
+      <div class="mini-meta">${summary.impacts.map((item) => `<span>影响：${item}</span>`).join("")}</div>
+    </div>
   `;
 }
 
@@ -416,14 +604,34 @@ function renderRuleResult(rule) {
 function renderSourceDrawer() {
   const ids = state.selectedSourceIds.length ? state.selectedSourceIds : sourceIdsForCurrentContext();
   const sources = getSources(ids);
+  const task = getTask();
+  const groups = groupSources(sources);
   return `
     <section class="drawer-page">
       <div class="source-drawer">
-        <button class="link-btn" data-page="${state.matcher.matchedRules.length ? "P3" : "P1"}">← 返回上一页</button>
+        <button class="link-btn" data-page="${state.previousPage || "P1"}">← 返回上一页</button>
         <p class="eyebrow">P4 可信来源抽屉</p>
-        <h1>来源、核验日期和最终确认方</h1>
-        <p class="subtle">这里区分答案依据和外部入口；来源不等于最终审核结论。</p>
-        <div class="source-list">${sources.map(renderSource).join("")}</div>
+        <h1>为什么这条建议可信，但仍需机构确认</h1>
+        <p class="lead">当前任务：${task?.title || "第一月路线图"}</p>
+        <div class="source-summary">
+          <div><strong>${sources.length}</strong><span>条来源</span></div>
+          <div><strong>${sources.filter((source) => source.source_level === "S").length}</strong><span>S 级官方/法定</span></div>
+          <div><strong>${sources.filter((source) => source.source_level === "A").length}</strong><span>A 级学校/机构</span></div>
+        </div>
+        <div class="trust-strip source-warning">
+          <strong>边界提示</strong>
+          <span>港话通用来源来拆步骤和准备问题，不替代学校、银行、政府部门或专业机构的最终审核。学校链接只作为样例，实际要查用户自己的学校入口。</span>
+        </div>
+        ${groups
+          .map(
+            ([title, items]) => `
+              <section class="source-group">
+                <h2>${title}</h2>
+                <div class="source-list">${items.map(renderSource).join("")}</div>
+              </section>
+            `
+          )
+          .join("")}
         <div class="button-row">
           <button class="primary" data-page="P5">生成咨询问题</button>
           <button class="secondary" data-page="P1">回路线图</button>
@@ -437,13 +645,20 @@ function renderSource(source) {
   return `
     <article class="source-card">
       <div class="rule-head">
-        <h3>${source.name}</h3>
+        <div>
+          <h3>${source.name}</h3>
+          <p class="source-kind">${describeSourceType(source.source_type)}</p>
+        </div>
         <span class="source-level">${source.source_level}</span>
       </div>
-      <p><strong>机构：</strong>${source.owner}</p>
-      <p><strong>最后核验：</strong>${source.last_verified_at}</p>
-      <p><strong>最终确认方：</strong>${source.final_decision_maker}</p>
-      <p>${source.boundary_note}</p>
+      <div class="source-meta-grid">
+        <p><strong>来源等级</strong><span>${describeSourceLevel(source.source_level)}</span></p>
+        <p><strong>机构</strong><span>${source.owner}</span></p>
+        <p><strong>最后核验</strong><span>${source.last_verified_at}</span></p>
+        <p><strong>最终确认方</strong><span>${source.final_decision_maker}</span></p>
+      </div>
+      <p class="boundary-note">${source.boundary_note}</p>
+      <div class="mini-meta">${source.task_tags.map((tag) => `<span>${tag}</span>`).join("")}</div>
       <a href="${source.url}" target="_blank" rel="noreferrer">打开来源链接</a>
     </article>
   `;
@@ -451,18 +666,31 @@ function renderSource(source) {
 
 function renderQuestionGenerator() {
   const questions = buildQuestions();
+  const context = buildQuestionContext();
   return `
     <section class="panel">
-      <button class="link-btn" data-page="P3">← 返回匹配结果</button>
+      <button class="link-btn" data-page="P3">← 返回住处与材料结果</button>
       <p class="eyebrow">P5 咨询问题生成器 / 兜底入口</p>
       <h1>不能替你下结论，但可以帮你问对问题</h1>
+      <div class="context-card">
+        <h2>当前情境</h2>
+        <div class="mini-meta">
+          <span>${context.phaseText}</span>
+          <span>${context.livingText}</span>
+          <span>${context.purposeText}</span>
+          <span>${context.materialText}</span>
+        </div>
+        <p>建议联系顺序：先问本校应该找哪个办公室，再按具体用途问政府部门或目标银行。学校样例来源只示范入口类型，不代表系统覆盖所有学校。</p>
+      </div>
+      ${renderApiStatus("questions")}
       <div class="question-grid">${questions.map(renderQuestion).join("")}</div>
       <div class="fallbacks">
-        ${["1823 政府查询", "学校学生事务处", "目标银行", "18222 防骗咨询", "999 紧急服务", "NGO / IFSC"]
+        ${["本校学生事务处", "宿舍办公室 / Registry", "1823 政府查询", "目标银行", "18222 防骗咨询", "999 紧急服务", "NGO / IFSC"]
           .map((item) => `<span>${item}</span>`)
           .join("")}
       </div>
       <div class="button-row">
+        <button class="secondary" data-action="polish-questions">${state.api.isLoading ? "润色中..." : "模拟 AI 润色问题"}</button>
         <button class="primary" data-action="complete-loop">保存到任务并回路线图</button>
         <button class="secondary" data-page="P4">查看来源</button>
       </div>
@@ -470,28 +698,103 @@ function renderQuestionGenerator() {
   `;
 }
 
-function buildQuestions() {
+function buildQuestionContext() {
   const materialText = state.matcher.materials.map((item) => labels.material[item] || item).join("、") || "暂无文件";
   const livingText = labels.living[state.matcher.living_status] || "未确定";
   const purposeText = state.matcher.purposes.map((item) => labels.purpose[item] || item).join(" / ");
-
-  return state.templates.map((template) => ({
-    ...template,
-    text: template.template_text
-      .replaceAll("【材料列表】", materialText)
-      .replaceAll("【居住状态】", livingText)
-      .replaceAll("【用途】", purposeText)
-  }));
+  const phaseText = labels.phase[state.matcher.arrival_phase] || "抵港阶段未确定";
+  return { materialText, livingText, purposeText, phaseText };
 }
 
+function buildQuestions() {
+  return state.api.polishedQuestions || buildTemplateQuestions();
+}
+
+function buildTemplateQuestions() {
+  const context = buildQuestionContext();
+  return state.templates
+    .slice()
+    .sort((a, b) => (a.priority_order || 99) - (b.priority_order || 99))
+    .map((template) => ({
+      ...template,
+      text: template.template_text
+        .replaceAll("【材料列表】", context.materialText)
+        .replaceAll("【居住状态】", context.livingText)
+        .replaceAll("【用途】", context.purposeText)
+        .replaceAll("【抵港阶段】", context.phaseText)
+    }));
+}
+
+function renderApiStatus(kind) {
+  const run = kind === "profile" ? state.api.lastProfileRun : state.api.lastQuestionRun;
+  const title = kind === "profile" ? "P0 API 增强位：自然语言解析" : "P5 API 增强位：咨询问题润色";
+  const emptyText =
+    kind === "profile"
+      ? "当前还没调用增强位。点击后会模拟 HKGAI Modelhub 把输入拆成结构化画像；真实 API 失败时也会保留本地路线图。"
+      : "当前先展示模板问题。点击后会模拟 HKGAI Modelhub 润色语气；真实 API 不能改变材料边界和最终确认方。";
+
+  if (!run) {
+    return `
+      <div class="api-card idle">
+        <strong>${title}</strong>
+        <p>${emptyText}</p>
+        <span>状态：等待调用 · fallback ready</span>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="api-card">
+      <strong>${title}</strong>
+      <p>${run.reason}</p>
+      <div class="mini-meta">
+        <span>mode: ${run.mode}</span>
+        <span>provider: ${run.provider}</span>
+        <span>live_api: ${run.used_live_api ? "true" : "false"}</span>
+      </div>
+      ${run.inferred ? `<p>${run.inferred.summary}</p>` : ""}
+    </div>
+  `;
+}
+
+async function runProfileEnhancement() {
+  state.profile.input = document.querySelector("#profileInput")?.value || state.profile.input;
+  state.api.isLoading = true;
+  render();
+  const result = await enhanceProfileInput(state.profile);
+  state.api.lastProfileRun = result;
+  state.profile = { ...state.profile, ...result.inferred };
+  state.api.isLoading = false;
+  render();
+}
+
+async function runQuestionPolish() {
+  const context = buildQuestionContext();
+  const baseQuestions = buildTemplateQuestions();
+  state.api.isLoading = true;
+  render();
+  const result = await polishConsultationQuestions(baseQuestions, context);
+  state.api.lastQuestionRun = result;
+  state.api.polishedQuestions = result.questions;
+  state.api.isLoading = false;
+  render();
+}
 function renderQuestion(question) {
   return `
     <article class="question-card">
       <div class="rule-head">
-        <h3>${question.target_label}</h3>
+        <div>
+          <p class="eyebrow">建议 ${question.priority_order || ""}</p>
+          <h3>${question.target_label}</h3>
+        </div>
         <button class="ghost small" data-copy="${encodeURIComponent(question.text)}">${state.copied ? "已复制" : "复制"}</button>
       </div>
-      <p>${question.text}</p>
+      <p>${question.why_contact}</p>
+      <details open>
+        <summary>要确认什么</summary>
+        <ul>${(question.confirm_checklist || []).map((item) => `<li>${item}</li>`).join("")}</ul>
+      </details>
+      <div class="question-text">${question.text}</div>
       <div class="mini-meta">${question.fallback_channels.map((item) => `<span>${item}</span>`).join("")}</div>
     </article>
   `;
@@ -505,7 +808,9 @@ function bindEvents() {
     state.profile.input = document.querySelector("#profileInput").value;
     setPage("P1");
   });
+  document.querySelector("[data-action='enhance-profile']")?.addEventListener("click", runProfileEnhancement);
   document.querySelector("[data-action='complete-loop']")?.addEventListener("click", completeAddressLoop);
+  document.querySelector("[data-action='polish-questions']")?.addEventListener("click", runQuestionPolish);
   document.querySelector("[data-action='open-source-current']")?.addEventListener("click", () => openSources(["HK-S-003", "HK-S-209-IMMD-HKID", "HK-S-211-HKMA-ACCOUNT-INFO"]));
   document.querySelectorAll("[data-open-task]").forEach((button) => {
     button.addEventListener("click", () => openTask(button.dataset.openTask));
@@ -551,3 +856,7 @@ function bindEvents() {
 boot().catch((error) => {
   app.innerHTML = `<main class="main"><section class="panel"><h1>Demo 加载失败</h1><p>${error.message}</p></section></main>`;
 });
+
+
+
+

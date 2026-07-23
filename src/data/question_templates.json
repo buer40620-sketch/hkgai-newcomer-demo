@@ -1,29 +1,38 @@
 [
   {
-    "template_id": "qt_school_address_proof_001",
+    "template_id": "qt_school_housing_materials_001",
     "target_type": "school",
-    "target_label": "学校 / 宿舍办公室",
-    "scenario": "address_proof",
-    "required_slots": ["living_status", "materials", "purpose"],
-    "fallback_channels": ["学校学生事务处", "宿舍办公室", "Registry"],
-    "template_text": "我是新入学的非本地学生，目前住在/即将入住【居住状态】。我想确认学校是否可以为我开具带有姓名和香港住址的住宿证明或地址证明。我目前已有：【材料列表】。请问这份证明可否用于【用途】？是否需要原件、电子版、英文版本、最近三个月日期或其他格式要求？"
+    "target_label": "本校学生事务处 / 宿舍办公室 / Registry",
+    "scenario": "housing_materials",
+    "priority_order": 1,
+    "why_contact": "确认本校是否能提供住宿、地址或学生身份相关文件，以及这些文件能否用于校内记录或外部机构咨询。",
+    "confirm_checklist": ["本校应联系哪个办公室", "是否能出带姓名和香港地址的证明", "证明可用于哪些用途", "是否需要原件、PDF、英文版或日期要求"],
+    "required_slots": ["arrival_phase", "living_status", "materials", "purpose"],
+    "fallback_channels": ["学生事务处", "宿舍办公室 / Hall Office", "Registry / Academic Registry", "Non-local student guide"],
+    "template_text": "你好，我是新入学的非本地学生，目前处于【抵港阶段】，住处状态是【居住状态】。我正在整理住处与材料，后续可能涉及【用途】。我目前已有：【材料列表】。请问本校应该联系哪个办公室确认地址、住宿或学生身份证明？学校是否可以开具带有姓名和香港地址的文件？这类文件可否用于校内记录，或作为银行/政府服务咨询时的辅助材料？是否需要原件、电子版、英文版本、最近三个月日期或其他格式要求？"
   },
   {
-    "template_id": "qt_government_address_proof_001",
+    "template_id": "qt_government_housing_materials_001",
     "target_type": "government",
-    "target_label": "政府 / 1823",
-    "scenario": "address_proof",
-    "required_slots": ["purpose", "materials"],
+    "target_label": "政府部门 / 1823",
+    "scenario": "housing_materials",
+    "priority_order": 2,
+    "why_contact": "当不确定具体政府服务是否需要地址资料或证明文件时，用 1823 或目标部门确认入口和材料要求。",
+    "confirm_checklist": ["具体服务由哪个部门负责", "是否需要地址资料或证明文件", "哪些文件可接受", "是否应转问其他部门"],
+    "required_slots": ["purpose", "materials", "living_status"],
     "fallback_channels": ["1823", "入境处", "对应政府部门"],
-    "template_text": "我是新来港学生，想办理【用途】。我目前没有本人水电账单，手上有：【材料列表】。请问这个服务是否需要地址证明？如果需要，哪些文件可接受？如果应由其他部门确认，请问应联系哪个部门？"
+    "template_text": "你好，我是新来港学生，目前住处状态是【居住状态】。我想办理或确认【用途】相关事项，但暂时没有本人水电账单，手上有：【材料列表】。请问这个政府服务是否需要地址资料或住址证明？如果需要，哪些文件可接受？如果这个问题应由其他部门处理，请问应联系哪个部门或入口？"
   },
   {
-    "template_id": "qt_bank_address_proof_001",
+    "template_id": "qt_bank_housing_materials_001",
     "target_type": "bank",
-    "target_label": "银行 / 目标机构",
-    "scenario": "address_proof",
+    "target_label": "目标银行 / 开户客服",
+    "scenario": "housing_materials",
+    "priority_order": 3,
+    "why_contact": "银行要求因银行和账户类型而异，港话通只能帮你整理要问的问题，不能替银行判断材料一定可用。",
+    "confirm_checklist": ["是否需要香港 residential address proof", "是否接受学校/租约/临时住宿材料", "是否需要英文版或最近三个月日期", "非 HKID 用户是否需额外文件"],
     "required_slots": ["materials", "living_status"],
     "fallback_channels": ["目标银行客服", "银行分行", "学校银行开户支援入口"],
-    "template_text": "我是非本地学生，准备在贵行开立账户。我目前的香港住址材料是：【材料列表】，当前居住状态是：【居住状态】。请问开户是否需要香港 residential address proof？上述文件是否可接受？是否需要原件、英文版本、最近三个月日期、香港电话号码或其他补充文件？"
+    "template_text": "你好，我是非本地学生，准备在贵行开立账户。目前处于【抵港阶段】，住处状态是【居住状态】。我目前的地址相关材料是：【材料列表】。请问开户是否需要香港 residential address proof？上述材料是否可作为地址资料或辅助文件？是否需要原件、英文版本、最近三个月日期、香港电话号码，或因未持有 HKID 而需要额外文件？"
   }
 ]
