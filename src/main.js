@@ -4,6 +4,7 @@ const app = document.querySelector("#app");
 
 const state = {
   page: "P0",
+  language: "zh-CN",
   selectedTaskId: "housing_materials_001",
   selectedSourceIds: [],
   previousPage: "P1",
@@ -11,6 +12,7 @@ const state = {
   sources: [],
   rules: [],
   templates: [],
+  phrases: {},
   profile: {
     user_group: "内地来港读研学生",
     arrival_stage: "抵港前",
@@ -36,6 +38,101 @@ const state = {
   }
 };
 
+
+const languageLabels = {
+  "zh-CN": {
+    code: "简",
+    brandTagline: "新来港，不孤单",
+    welcomeEyebrow: "P0 欢迎 / 身份选择",
+    welcomeTitle: "一步一步来，<br />香港生活从这里开始",
+    start: "开始规划",
+    helper: "不知道自己该问什么？直接点开始也可以",
+    aiParse: "模拟 HKGAI 解析",
+    parsing: "解析中...",
+    voiceTitle: "模拟语音输入，不调用真实录音",
+    voice: "语",
+    personaQuestion: "你是哪类来港情况？",
+    stageQuestion: "你现在到哪一步？",
+    footer: "覆盖到港前准备、第一周手续、第一个月生活；所有材料结论仍以机构确认。",
+    languageAssist: "语言辅助",
+    roadmapEyebrow: "P1 第一月任务路线图",
+    roadmapTitle: "我的第一月路线",
+    mapEyebrow: "任务地图 / 轻探索版",
+    mapHint: "点击任意任务查看详细指引；“住处与材料”会进入深水追问。",
+    routeFallbackDeep: "住处与材料仍是共用深水区",
+    personas: { "内地来港读研学生": "内地来港读研学生", "新移民 / 来港家庭": "新移民 / 来港家庭", "高才通 / 专才": "高才通 / 专才", "我帮家人办理": "我帮家人办理" },
+    stages: { "抵港前": "抵港前", "刚抵港": "刚抵港", "抵港第一周": "抵港第一周", "第一月": "第一月", "到港前": "到港前", "抵港第一个月": "抵港第一个月", "抵港准备": "抵港准备", "安顿第一周": "安顿第一周", "第一个月": "第一个月", "马上补做": "马上补做", "本周处理": "本周处理", "本月跟进": "本月跟进", "本周补齐": "本周补齐", "后续确认": "后续确认", "当前补齐": "当前补齐", "重点确认": "重点确认", "后续维护": "后续维护", "住处与材料重点深挖": "住处与材料重点深挖", "住处与材料仍是共用深水区": "住处与材料仍是共用深水区" }
+  },
+  "zh-HK": {
+    code: "繁",
+    brandTagline: "新來港，不孤單",
+    welcomeEyebrow: "P0 歡迎 / 身份選擇",
+    welcomeTitle: "一步一步來，<br />香港生活從這裡開始",
+    start: "開始規劃",
+    helper: "不知道自己該問甚麼？直接點開始也可以",
+    aiParse: "模擬 HKGAI 解析",
+    parsing: "解析中...",
+    voiceTitle: "模擬語音輸入，不調用真實錄音",
+    voice: "語",
+    personaQuestion: "你是哪類來港情況？",
+    stageQuestion: "你現在到哪一步？",
+    footer: "覆蓋到港前準備、第一週手續、第一個月生活；所有材料結論仍以機構確認。",
+    languageAssist: "語言輔助",
+    roadmapEyebrow: "P1 第一月任務路線圖",
+    roadmapTitle: "我的第一月路線",
+    mapEyebrow: "任務地圖 / 輕探索版",
+    mapHint: "點擊任意任務查看詳細指引；「住處與材料」會進入深水追問。",
+    routeFallbackDeep: "住處與材料仍是共用深水區",
+    personas: { "内地来港读研学生": "內地來港讀研學生", "新移民 / 来港家庭": "新移民 / 來港家庭", "高才通 / 专才": "高才通 / 專才", "我帮家人办理": "我幫家人辦理" },
+    stages: { "抵港前": "抵港前", "刚抵港": "剛抵港", "抵港第一周": "抵港第一週", "第一月": "第一月", "到港前": "到港前", "抵港第一个月": "抵港第一個月", "抵港准备": "抵港準備", "安顿第一周": "安頓第一週", "第一个月": "第一個月", "马上补做": "即時補做", "本周处理": "本週處理", "本月跟进": "本月跟進", "本周补齐": "本週補齊", "后续确认": "後續確認", "当前补齐": "當前補齊", "重点确认": "重點確認", "后续维护": "後續維護", "住处与材料重点深挖": "住處與材料重點深挖", "住处与材料仍是共用深水区": "住處與材料仍是共用深水區" }
+  },
+  en: {
+    code: "EN",
+    brandTagline: "New in Hong Kong, not alone",
+    welcomeEyebrow: "P0 Welcome / Profile",
+    welcomeTitle: "Step by step,<br />start your Hong Kong life here",
+    start: "Start planning",
+    helper: "Not sure what to ask? Start directly.",
+    aiParse: "Simulate HKGAI parsing",
+    parsing: "Parsing...",
+    voiceTitle: "Simulated voice input, no real recording",
+    voice: "Voice",
+    personaQuestion: "Who are you planning for?",
+    stageQuestion: "Where are you now?",
+    footer: "Covers pre-arrival, first-week tasks, and first-month life. Documents still need institutional confirmation.",
+    languageAssist: "Language assist",
+    roadmapEyebrow: "P1 First-month route",
+    roadmapTitle: "My first-month route",
+    mapEyebrow: "Task map / light exploration",
+    mapHint: "Tap any task for details. Housing and documents remains the deeper check.",
+    routeFallbackDeep: "Housing and documents stays as the shared deep-dive",
+    personas: { "内地来港读研学生": "Mainland postgraduate student", "新移民 / 来港家庭": "New migrant / arriving family", "高才通 / 专才": "Top Talent / professional", "我帮家人办理": "Planning for family" },
+    stages: { "抵港前": "Before arrival", "刚抵港": "Just arrived", "抵港第一周": "First week", "第一月": "First month", "到港前": "Before arrival", "抵港第一个月": "First month", "抵港准备": "Arrival prep", "安顿第一周": "Settling first week", "第一个月": "First month", "马上补做": "Do now", "本周处理": "This week", "本月跟进": "This month", "本周补齐": "Catch up this week", "后续确认": "Confirm later", "当前补齐": "Catch up now", "重点确认": "Key checks", "后续维护": "Keep updated", "住处与材料重点深挖": "Housing and documents deep-dive", "住处与材料仍是共用深水区": "Housing and documents shared deep-dive" }
+  }
+};
+
+function t(key) {
+  return languageLabels[state.language]?.[key] || languageLabels["zh-CN"][key] || key;
+}
+
+function tp(value) {
+  return languageLabels[state.language]?.personas?.[value] || value;
+}
+
+function ts(value) {
+  return languageLabels[state.language]?.stages?.[value] || value;
+}
+
+function renderLanguageAssist() {
+  return `
+    <div class="language-assist" aria-label="${t("languageAssist")}">
+      <span>${t("languageAssist")}</span>
+      ${["zh-CN", "zh-HK", "en"]
+        .map((lang) => `<button class="${state.language === lang ? "active" : ""}" data-language="${lang}" type="button">${languageLabels[lang].code}</button>`)
+        .join("")}
+    </div>
+  `;
+}
 
 
 const personaConfigs = {
@@ -100,6 +197,84 @@ const personaConfigs = {
     mainBlocker: "替家人整理办事入口",
     welcomeTitle: "把家人的来港事项，整理成可确认的任务地图",
     input: "我想帮家人整理来香港后的证件、住处、医疗、社区服务和政府查询入口，不确定应该先问哪些机构。"
+  }
+};
+
+const stageSemantics = {
+  "抵港前": {
+    routeLabels: ["到港前", "抵港第一周", "抵港第一个月", "住处与材料重点深挖"],
+    timelineTitles: ["到港前", "抵港第一周", "抵港第一个月"],
+    timelineTone: "prepare",
+    introPrefix: "先按到港前 / 第一周 / 第一个月生成任务路线图",
+    queryAction: "到港前和第一周应该先做什么"
+  },
+  "刚抵港": {
+    routeLabels: ["马上补做", "本周处理", "本月跟进", "住处与材料重点深挖"],
+    timelineTitles: ["马上补做", "本周处理", "本月跟进"],
+    timelineTone: "catchup",
+    introPrefix: "先把可能漏掉的前置事项列为马上补做，再安排本周处理和本月跟进",
+    queryAction: "现在应该马上补做什么，本周优先处理什么"
+  },
+  "抵港第一周": {
+    routeLabels: ["本周补齐", "本月跟进", "后续确认", "住处与材料重点深挖"],
+    timelineTitles: ["本周补齐", "本月跟进", "后续确认"],
+    timelineTone: "week",
+    introPrefix: "先补齐本周仍可能卡住的前置事项，再安排本月跟进和后续确认",
+    queryAction: "这一周还应该补齐什么，本月要跟进什么"
+  },
+  "第一月": {
+    routeLabels: ["当前补齐", "重点确认", "后续维护", "住处与材料重点深挖"],
+    timelineTitles: ["当前补齐", "重点确认", "后续维护"],
+    timelineTone: "month",
+    introPrefix: "先补齐当前仍缺的基础事项，再集中确认住处、材料和公共服务入口",
+    queryAction: "现在还应该补齐什么，哪些事项需要重点确认"
+  }
+};
+
+const stageTimelineDescriptions = {
+  "内地来港读研学生": {
+    prepare: [
+      "先保通信、证件材料、临时住宿和交通支付。",
+      "处理长期联系方式、学校报到、住处与材料、HKID 预约和租房风险。",
+      "稳定住处后，再确认银行、医疗、社区和 NGO 服务入口。"
+    ],
+    catchup: [
+      "把通信、证件材料、临时住处和交通支付这些前置事项立刻查漏补缺。",
+      "本周优先处理学校报到、住处与材料、HKID 预约和租房风险。",
+      "本月继续确认银行、医疗、社区和 NGO 服务入口。"
+    ],
+    week: [
+      "先补齐通信、证件材料、临时住处和交通支付里仍未完成的事项。",
+      "本月跟进学校记录、住处与材料、HKID、银行和医疗入口。",
+      "后续保存机构回复，持续确认住处、材料和公共服务入口。"
+    ],
+    month: [
+      "先补齐还会影响后续办事的基础事项。",
+      "重点确认住处与材料、银行、HKID、医疗和学校记录。",
+      "后续维护地址信息、机构回复和风险兜底入口。"
+    ]
+  },
+  "新移民 / 来港家庭": {
+    prepare: [
+      "先整理证件材料、临时住处、通信方式和交通支付。",
+      "确认住处、政府查询入口、医疗紧急入口和家庭服务支持。",
+      "逐步确认银行、社区/NGO、家庭和公共服务入口。"
+    ],
+    catchup: [
+      "把证件材料、临时住处、通信方式和交通支付这些前置事项立刻查漏补缺。",
+      "本周优先确认住处、政府查询入口、医疗紧急入口和家庭服务支持。",
+      "本月继续确认银行、社区/NGO、家庭和公共服务入口。"
+    ],
+    week: [
+      "先补齐证件、通信、临时住处和交通支付里仍未完成的事项。",
+      "本月跟进政府查询、社区/NGO、医疗入口、家庭服务和银行开户。",
+      "后续保存机构回复，持续确认住处、材料和服务入口。"
+    ],
+    month: [
+      "先补齐还会影响家庭办事的基础事项。",
+      "重点确认住处与材料、政府服务、社区/NGO、医疗入口和银行开户。",
+      "后续维护地址信息、机构回复和风险兜底入口。"
+    ]
   }
 };
 
@@ -300,6 +475,92 @@ function currentPersona() {
   return { ...base, ...(personaConfigs[state.profile.user_group] || {}) };
 }
 
+function currentStageSemantics() {
+  return stageSemantics[state.profile.arrival_stage] || stageSemantics["抵港前"];
+}
+
+function currentTimeline() {
+  const persona = currentPersona();
+  const semantics = currentStageSemantics();
+  const baseTimeline = persona.timeline || personaConfigs["内地来港读研学生"].timeline;
+  const descriptionSet = stageTimelineDescriptions[persona.userGroup] || stageTimelineDescriptions["内地来港读研学生"];
+  const descriptions = descriptionSet[semantics.timelineTone] || descriptionSet.prepare;
+  return baseTimeline.map(([stage], index) => [stage, semantics.timelineTitles[index], descriptions[index]]);
+}
+
+function currentRouteLabels() {
+  const labelsForStage = currentStageSemantics().routeLabels;
+  return isFamilyPersona()
+    ? labelsForStage.map((item) => (item === "住处与材料重点深挖" ? "住处与材料仍是共用深水区" : item))
+    : labelsForStage;
+}
+
+function displayStageLabel(stage) {
+  const item = currentTimeline().find(([timelineStage]) => timelineStage === stage);
+  return item?.[1] || labels.stage[stage] || stage;
+}
+
+function currentWelcomeTitle() {
+  const persona = currentPersona();
+  if (state.profile.arrival_stage === "抵港前") return persona.welcomeTitle;
+  if (isFamilyPersona()) {
+    return `把${state.profile.arrival_stage}后的家庭安顿事项，整理成第一月任务地图`;
+  }
+  return `把${state.profile.arrival_stage}后的补做事项，整理成第一月路线图`;
+}
+
+function buildProfileInput(userGroup = state.profile.user_group, arrivalStage = state.profile.arrival_stage) {
+  const persona = personaConfigs[userGroup] || personaConfigs["内地来港读研学生"];
+  const semantics = stageSemantics[arrivalStage] || stageSemantics["抵港前"];
+  if (persona.userGroup === "新移民 / 来港家庭") {
+    const locationText = arrivalStage === "抵港前" ? "准备来香港" : arrivalStage === "刚抵港" ? "刚来香港" : `来香港${arrivalStage}`;
+    return `我们一家${locationText}，暂时住处和社区服务入口还不确定，也不清楚医疗、政府查询和家庭相关事项应该先问哪里。${semantics.queryAction}？`;
+  }
+  if (persona.userGroup === "高才通 / 专才") {
+    const stageText = arrivalStage === "抵港前" ? "准备来香港工作" : `${arrivalStage}来香港工作`;
+    return `我${stageText}，可能带家人一起过来。住房、证件、银行、医疗和社区服务${semantics.queryAction}？`;
+  }
+  if (persona.userGroup === "我帮家人办理") {
+    return `我想帮家人整理来香港后的证件、住处、医疗、社区服务和政府查询入口。家人目前是${arrivalStage}，${semantics.queryAction}？`;
+  }
+  const stageText = arrivalStage === "抵港前" ? "8 月底到香港" : arrivalStage;
+  return `我是内地来港读研学生，${stageText}，还没确认哪些通信、住处、证件材料和香港电话卡事项已经完成。${semantics.queryAction}？`;
+}
+
+function buildLocalizedProfileInput(userGroup = state.profile.user_group, arrivalStage = state.profile.arrival_stage) {
+  if (state.language === "zh-CN") return buildProfileInput(userGroup, arrivalStage);
+  const persona = personaConfigs[userGroup] || personaConfigs["内地来港读研学生"];
+  const stageText = ts(arrivalStage);
+
+  if (state.language === "zh-HK") {
+    if (persona.userGroup === "新移民 / 来港家庭") {
+      return `我們一家${stageText}，暫時住處和社區服務入口還不確定，也不清楚醫療、政府查詢和家庭相關事項應該先問哪裡。下一步應該怎樣安排？`;
+    }
+    if (persona.userGroup === "高才通 / 专才") {
+      return `我${stageText}來香港工作，可能帶家人一起過來。住房、證件、銀行、醫療和社區服務應該先處理甚麼？`;
+    }
+    if (persona.userGroup === "我帮家人办理") {
+      return `我想幫家人整理來香港後的證件、住處、醫療、社區服務和政府查詢入口。家人目前是${stageText}，下一步應該怎樣安排？`;
+    }
+    return `我是內地來港讀研學生，${stageText}，還沒確認哪些通信、住處、證件材料和香港電話卡事項已經完成。下一步應該先做甚麼？`;
+  }
+
+  if (persona.userGroup === "新移民 / 来港家庭") {
+    return `My family is ${stageText}. We have not confirmed housing, community services, medical access, government enquiries, or family-related support. What should we do next?`;
+  }
+  if (persona.userGroup === "高才通 / 专才") {
+    return `I am coming to Hong Kong for work as a talent/professional, possibly with family. What should I handle first for housing, documents, banking, medical access, and community services?`;
+  }
+  if (persona.userGroup === "我帮家人办理") {
+    return `I am helping my family plan documents, housing, medical access, community services, and government enquiry channels after arriving in Hong Kong. What should we do first?`;
+  }
+  return `I am a mainland postgraduate student ${stageText}. I have not confirmed telecom, housing, documents, or a Hong Kong phone card yet. What should I do first?`;
+}
+
+function syncProfileInput() {
+  state.profile.input = buildLocalizedProfileInput();
+}
+
 function isFamilyPersona() {
   return state.profile.user_group === "新移民 / 来港家庭";
 }
@@ -330,7 +591,7 @@ function applyPersona(userGroup) {
   state.profile.user_group = persona.userGroup;
   state.profile.arrival_stage = persona.arrivalStage || state.profile.arrival_stage;
   state.profile.main_blocker = persona.mainBlocker || state.profile.main_blocker;
-  state.profile.input = persona.input || state.profile.input;
+  state.profile.input = buildLocalizedProfileInput(persona.userGroup, state.profile.arrival_stage);
   if (isFamilyPersona()) {
     state.selectedTaskId = "housing_materials_001";
     state.matcher = {
@@ -358,17 +619,19 @@ function applyPersona(userGroup) {
 }
 
 async function boot() {
-  const [tasks, sources, rules, templates] = await Promise.all([
+  const [tasks, sources, rules, templates, phrases] = await Promise.all([
     fetchJson("./src/data/tasks.json"),
     fetchJson("./src/data/sources.json"),
     fetchJson("./src/data/address_proof_rules.json"),
-    fetchJson("./src/data/question_templates.json")
+    fetchJson("./src/data/question_templates.json"),
+    fetchJson("./src/data/local_phrases.json")
   ]);
 
   state.tasks = tasks;
   state.sources = sources;
   state.rules = rules;
   state.templates = templates;
+  state.phrases = phrases;
   state.matcher.matchedRules = matchRules();
   state.api.polishedQuestions = null;
   state.api.lastQuestionRun = null;
@@ -516,87 +779,103 @@ function render() {
   bindEvents();
 }
 
+function renderBrandMark() {
+  return `
+    <div class="brand-lockup">
+      <span class="brand-icon" aria-hidden="true"></span>
+      <strong>港话通</strong>
+      <small>${t("brandTagline")}</small>
+    </div>
+  `;
+}
+
+function renderDemoNav() {
+  return `
+    <nav class="stepper" aria-label="Demo flow">
+      ${["P0", "P1", "P2", "P3", "P4", "P5"]
+        .map((page) => `<button class="step ${state.page === page ? "active" : ""}" data-page="${page}">${page}</button>`)
+        .join("")}
+    </nav>
+  `;
+}
+
 function renderShell(content) {
   return `
-    <div class="app-shell">
-      <aside class="sidebar">
-        <div>
-          <div class="brand">港话通</div>
-          <p class="muted">新来港第一月任务导航</p>
-        </div>
-        <nav class="stepper" aria-label="Demo flow">
-          ${["P0", "P1", "P2", "P3", "P4", "P5"]
-            .map((page) => `<button class="step ${state.page === page ? "active" : ""}" data-page="${page}">${page}</button>`)
-            .join("")}
-        </nav>
-        <div class="note">
-          主线保底使用本地 mock。第 9 步先加入 API 适配层：可增强 P0 解析和 P5 问题润色，失败时自动回退。
-        </div>
-      </aside>
+    <div class="app-shell ${state.page === "P0" ? "welcome-shell" : "flow-shell"}">
+      <header class="topbar">
+        ${renderBrandMark()}
+        ${state.page === "P0" ? "" : renderDemoNav()}
+        ${renderLanguageAssist()}
+      </header>
       <main class="main">${content}</main>
     </div>
   `;
 }
 
 function renderWelcome() {
-  const persona = currentPersona();
   const profileOptions = ["内地来港读研学生", "新移民 / 来港家庭", "高才通 / 专才", "我帮家人办理"];
   return `
-    <section class="panel hero-panel">
-      <p class="eyebrow">P0 欢迎 / 身份选择</p>
-      <h1>${persona.welcomeTitle}</h1>
-      <textarea id="profileInput">${state.profile.input}</textarea>
-      <div class="choice-row" aria-label="用户身份">
-        ${profileOptions
-          .map((item) => `<button class="chip ${item === state.profile.user_group ? "selected" : ""}" data-profile="${item}">${item}</button>`)
-          .join("")}
+    <section class="hero-panel">
+      <div class="hero-copy">
+        <p class="eyebrow">${t("welcomeEyebrow")}</p>
+        <h1>${t("welcomeTitle")}</h1>
       </div>
-      <div class="choice-row" aria-label="抵港阶段">
-        ${["抵港前", "刚抵港", "抵港第一周", "第一月"]
-          .map((item) => `<button class="chip ${item === state.profile.arrival_stage ? "selected" : ""}" data-stage="${item}">${item}</button>`)
-          .join("")}
+      <div class="planning-card">
+        <div class="input-wrap">
+          <textarea id="profileInput">${state.profile.input}</textarea>
+          <button class="voice-placeholder" title="${t("voiceTitle")}" data-action="simulate-voice" type="button">${t("voice")}</button>
+        </div>
+        <button class="primary hero-cta" data-action="go-roadmap">${t("start")}</button>
+        <p class="helper-text">${t("helper")}</p>
+        <button class="secondary small ai-subtle" data-action="enhance-profile">${state.api.isLoading ? t("parsing") : t("aiParse")}</button>
       </div>
-      <div class="trust-strip">
-        <strong>可信提示</strong>
-        <span>答案会标注官方来源、最终确认方和需要确认的边界。</span>
+      <div class="visible-setup" aria-label="身份和阶段选择">
+        <div class="setup-group">
+          <p class="setup-label">${t("personaQuestion")}</p>
+          <div class="choice-row" aria-label="用户身份">
+            ${profileOptions
+              .map((item) => `<button class="chip ${item === state.profile.user_group ? "selected" : ""}" data-profile="${item}">${tp(item)}</button>`)
+              .join("")}
+          </div>
+        </div>
+        <div class="setup-group">
+          <p class="setup-label">${t("stageQuestion")}</p>
+          <div class="choice-row" aria-label="抵港阶段">
+            ${["抵港前", "刚抵港", "抵港第一周", "第一月"]
+              .map((item) => `<button class="chip ${item === state.profile.arrival_stage ? "selected" : ""}" data-stage="${item}">${ts(item)}</button>`)
+              .join("")}
+          </div>
+        </div>
       </div>
       ${renderApiStatus("profile")}
-      <div class="button-row">
-        <button class="secondary" data-action="enhance-profile">${state.api.isLoading ? "解析中..." : "模拟 HKGAI 解析"}</button>
-        <button class="primary" data-action="go-roadmap">生成我的路线图</button>
-      </div>
+      <p class="hero-footnote">${t("footer")}</p>
     </section>
   `;
 }
 
 function renderRoadmap() {
   const persona = currentPersona();
-  const timeline = persona.timeline || personaConfigs["内地来港读研学生"].timeline;
+  const timeline = currentTimeline();
+  const routeLabels = currentRouteLabels();
+  const roadmapIntro = `当前主线：${currentStageSemantics().introPrefix}，再进入“住处与材料”深水区。`;
   return `
-    <section class="page-head">
-      <p class="eyebrow">P1 第一月任务路线图</p>
-      <h1>${state.profile.user_group} · ${state.profile.arrival_stage}</h1>
-      <p class="subtle">${persona.roadmapIntro}</p>
+    <section class="page-head roadmap-head">
+      <button class="back-pill" data-page="P0">←</button>
+      <div>
+        <p class="eyebrow">${t("roadmapEyebrow")}</p>
+        <h1>${t("roadmapTitle")}</h1>
+        <p class="subtle">${tp(state.profile.user_group)} · ${ts(state.profile.arrival_stage)}。${roadmapIntro}</p>
+      </div>
       <div class="stats">
         ${persona.stats.map((item) => `<span>${item}</span>`).join("")}
       </div>
       <div class="route-strip">
-        ${persona.routeLabels.map((item, index) => `<span class="${index === persona.routeLabels.length - 1 ? "deep-step" : ""}">${item}</span>`).join("")}
+        ${routeLabels.map((item, index) => `<span class="${index === routeLabels.length - 1 ? "deep-step" : ""}">${ts(item)}</span>`).join("")}
       </div>
     </section>
     ${renderWidthSummary()}
     ${renderTaskMap(timeline)}
-    ${timeline
-      .map(([stage, title, desc]) => {
-        const tasks = tasksForCurrentPersona().filter((task) => task.stage === stage);
-        return `
-          <section class="section-band">
-            <div class="section-title"><div><h2>${title}</h2><p class="subtle">${desc}</p></div><button class="ghost" data-action="open-source-current">查看路线图来源</button></div>
-            <div class="task-grid ${stage === "first_month" ? "compact" : "featured"}">${tasks.map(renderTaskCard).join("")}</div>
-          </section>
-        `;
-      })
-      .join("")}
+    <p class="map-hint">${t("mapHint")}</p>
     <section class="external-row">
       ${["OpenRice / 吃饭", "HKTVmall / 购物", "Google Maps / 地点", "Career Center / 找工作"]
         .map((item) => `<span>${item}</span>`)
@@ -630,32 +909,58 @@ function renderWidthSummary() {
   `;
 }
 
+function stageIcon(stage) {
+  return {
+    pre_arrival: "plane",
+    first_week: "home",
+    first_month: "tree"
+  }[stage] || "dot";
+}
+
+function taskIcon(task) {
+  const icons = {
+    telecom: "phone",
+    entry_documents: "doc",
+    transport: "bus",
+    housing_materials: "key",
+    school_checkin: "school",
+    family_services: "heart",
+    housing_safety: "shield",
+    hkid: "id",
+    settling_in: "home",
+    bank_medical: "bank",
+    medical_entry: "medical",
+    community_support: "heart"
+  };
+  return icons[task.category] || icons[task.task_id] || "dot";
+}
+
 function renderTaskMap(timeline) {
   return `
     <section class="task-map" aria-label="第一月任务地图">
-      <div class="section-title">
+      <div class="section-title roadmap-title">
         <div>
-          <p class="eyebrow">任务地图 / 轻探索版</p>
+          <p class="eyebrow">${t("mapEyebrow")}</p>
           <h2>${currentPersona().mapTitle}</h2>
           <p class="subtle">${currentPersona().mapText}</p>
         </div>
       </div>
-      <div class="map-lanes">
+      <div class="map-lanes timeline-list">
         ${timeline
-          .map(([stage, title]) => {
+          .map(([stage, title, desc]) => {
             const tasks = tasksForCurrentPersona().filter((task) => task.stage === stage);
             return `
-              <div class="map-lane">
-                <div class="map-stage">${title}</div>
-                <div class="map-nodes">
+              <div class="map-lane timeline-section">
+                <div class="map-stage timeline-stage"><span class="route-icon ${stageIcon(stage)}" aria-hidden="true"></span><strong>${ts(title)}</strong><small>${desc}</small></div>
+                <div class="map-nodes timeline-nodes">
                   ${tasks
                     .map(
-                      (task, index) => `
-                        <button class="map-node ${task.task_depth === "deep" ? "deep-node" : ""} ${taskBadge(task.task_id) ? "width-node" : ""} ${task.risk_level}" data-open-task="${task.task_id}">
-                          <span>${index + 1}</span>
+                      (task) => `
+                        <button class="map-node timeline-node ${task.task_depth === "deep" ? "deep-node" : ""} ${taskBadge(task.task_id) ? "width-node" : ""} ${task.risk_level}" data-open-task="${task.task_id}">
+                          <span class="route-icon ${taskIcon(task)}" aria-hidden="true"></span>
                           <strong>${task.title}</strong>
                           ${taskBadge(task.task_id) ? `<em>${taskBadge(task.task_id).short}</em>` : ""}
-                          <small>${labels.status[task.status]}</small>
+                          <small>${task.summary}</small>
                         </button>
                       `
                     )
@@ -684,7 +989,7 @@ function renderTaskCard(task) {
       <p>${task.summary}</p>
       ${completed ? renderSavedSummary() : ""}
       <div class="mini-meta">
-        <span>${labels.stage[task.stage]}</span>
+        <span>${displayStageLabel(task.stage)}</span>
         <span>${task.source_ids.length} 个来源</span>
         ${taskBadge(task.task_id) ? `<span>${taskBadge(task.task_id).note}</span>` : ""}
       </div>
@@ -707,6 +1012,56 @@ function renderSavedSummary() {
       <div class="mini-meta">${summary.impacts.map((item) => `<span>影响：${item}</span>`).join("")}</div>
     </div>
   `;
+}
+
+function phraseItemsForTask(task) {
+  return state.phrases[task.category] || state.phrases[task.task_id] || [];
+}
+
+function renderLocalPhraseCard(task) {
+  const phrases = phraseItemsForTask(task);
+  if (!phrases.length) return "";
+  return `
+    <div class="phrase-card" aria-label="现场一句话">
+      <p class="eyebrow">现场一句话</p>
+      <h2>到现场先这样开口</h2>
+      ${phrases
+        .map(
+          (item) => `
+            <div class="phrase-item">
+              <strong>${item.phrase}</strong>
+              <span>${item.meaning}</span>
+              <small>${item.scene} · ${item.note}</small>
+            </div>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function simulateVoiceInput() {
+  if (state.language === "zh-HK") {
+    state.profile.input = isFamilyPersona()
+      ? "我們一家剛來香港，想用語音問社區、醫療、證件和住處事項應該先找誰。"
+      : state.profile.arrival_stage === "抵港前"
+        ? "我準備來香港，還沒電話卡和住處，想用語音問到港前要先準備甚麼。"
+        : "我剛到香港，還沒電話卡和住處，想用語音問第一週要先辦甚麼。";
+  } else if (state.language === "en") {
+    state.profile.input = isFamilyPersona()
+      ? "My family just arrived in Hong Kong. I want to ask by voice which community, medical, document, and housing services we should contact first."
+      : state.profile.arrival_stage === "抵港前"
+        ? "I am preparing to come to Hong Kong. I do not have a phone card or housing yet. What should I prepare before arrival?"
+        : "I just arrived in Hong Kong. I do not have a phone card or housing yet. What should I do in the first week?";
+  } else {
+    state.profile.input = isFamilyPersona()
+      ? "我们一家刚来香港，想用语音问社区、医疗、证件和住处事项应该先找谁。"
+      : state.profile.arrival_stage === "抵港前"
+        ? "我准备来香港，还没电话卡和住处，想用语音问到港前要先准备什么。"
+        : "我刚到香港，还没电话卡和住处，想用语音问第一周要先办什么。";
+  }
+  state.api.lastProfileRun = null;
+  render();
 }
 
 function renderTaskDetail() {
@@ -745,6 +1100,7 @@ function renderTaskDetail() {
           <p>${detailCopy.boundary}</p>
         </div>
       </div>
+      ${renderLocalPhraseCard(task)}
       <div class="button-row">
         ${
           isDeep
@@ -1087,6 +1443,7 @@ function bindEvents() {
     setPage("P1");
   });
   document.querySelector("[data-action='enhance-profile']")?.addEventListener("click", runProfileEnhancement);
+  document.querySelector("[data-action='simulate-voice']")?.addEventListener("click", simulateVoiceInput);
   document.querySelector("[data-action='complete-loop']")?.addEventListener("click", completeAddressLoop);
   document.querySelector("[data-action='polish-questions']")?.addEventListener("click", runQuestionPolish);
   document.querySelector("[data-action='open-source-current']")?.addEventListener("click", () => {
@@ -1100,6 +1457,13 @@ function bindEvents() {
   document.querySelectorAll("[data-open-sources]").forEach((button) => {
     button.addEventListener("click", () => openSources(button.dataset.openSources.split(",")));
   });
+  document.querySelectorAll("[data-language]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.language = button.dataset.language;
+      syncProfileInput();
+      render();
+    });
+  });
   document.querySelectorAll("[data-profile]").forEach((button) => {
     button.addEventListener("click", () => {
       applyPersona(button.dataset.profile);
@@ -1109,6 +1473,7 @@ function bindEvents() {
   document.querySelectorAll("[data-stage]").forEach((button) => {
     button.addEventListener("click", () => {
       state.profile.arrival_stage = button.dataset.stage;
+      syncProfileInput();
       render();
     });
   });
