@@ -882,4 +882,225 @@ code {
     grid-template-columns: 1fr;
   }
 }
+@media (max-width: 640px) {
+  body {
+    background: #fff;
+  }
+
+  .app-shell {
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    gap: 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 14px;
+  }
+
+  .brand {
+    font-size: 22px;
+  }
+
+  .sidebar .muted {
+    margin: 4px 0 0;
+    font-size: 13px;
+  }
+
+  .sidebar .note {
+    display: none;
+  }
+
+  .stepper {
+    grid-template-columns: repeat(6, minmax(42px, 1fr));
+    gap: 6px;
+  }
+
+  .step {
+    min-height: 34px;
+    padding: 6px 4px;
+    font-size: 13px;
+  }
+
+  .main {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .panel,
+  .section-band,
+  .page-head,
+  .task-map,
+  .width-summary,
+  .source-drawer {
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+    padding: 16px 14px;
+    margin-left: -12px;
+    margin-right: -12px;
+    margin-bottom: 12px;
+  }
+
+  .hero-panel {
+    min-height: auto;
+    justify-content: flex-start;
+  }
+
+  h1 {
+    font-size: 24px;
+    line-height: 1.22;
+  }
+
+  h2 {
+    font-size: 18px;
+  }
+
+  h3 {
+    font-size: 16px;
+  }
+
+  .lead {
+    font-size: 16px;
+  }
+
+  textarea {
+    min-height: 118px;
+    padding: 12px;
+  }
+
+  .choice-row,
+  .button-row,
+  .tag-row,
+  .stats,
+  .card-actions,
+  .route-strip,
+  .external-row,
+  .fallbacks,
+  .mini-meta {
+    gap: 8px;
+  }
+
+  .choice-row .chip,
+  .button-row .primary,
+  .button-row .secondary,
+  .button-row .ghost,
+  .card-actions .primary,
+  .card-actions .icon-btn,
+  .width-pill,
+  .check {
+    width: 100%;
+  }
+
+  .primary,
+  .secondary,
+  .ghost,
+  .icon-btn,
+  .chip,
+  .check,
+  .width-pill,
+  .map-node {
+    min-height: 44px;
+  }
+
+  .stats span,
+  .route-strip span,
+  .external-row span,
+  .fallbacks span,
+  .mini-meta span {
+    width: 100%;
+  }
+
+  .task-grid,
+  .task-grid.compact,
+  .detail-grid,
+  .question-grid,
+  .matcher-layout,
+  .source-summary,
+  .source-meta-grid,
+  .width-summary,
+  .width-pill-row,
+  .map-lanes {
+    grid-template-columns: 1fr;
+  }
+
+  .task-card,
+  .rule-card,
+  .source-card,
+  .question-card,
+  .context-card,
+  .question-text,
+  .api-card,
+  .shallow-note,
+  .saved-summary,
+  .map-lane,
+  .width-pill {
+    padding: 12px;
+  }
+
+  .map-lane {
+    background: #fff;
+  }
+
+  .map-stage {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    padding: 4px 0 8px;
+    z-index: 1;
+  }
+
+  .map-node {
+    grid-template-columns: 28px minmax(0, 1fr);
+    min-height: 76px;
+  }
+
+  .map-node strong {
+    font-size: 14px;
+  }
+
+  .rule-head,
+  .section-title {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .source-level {
+    align-self: flex-start;
+  }
+
+  ol,
+  ul {
+    padding-left: 18px;
+  }
+}
+
+@media (max-width: 390px) {
+  .main {
+    padding: 10px;
+  }
+
+  .panel,
+  .section-band,
+  .page-head,
+  .task-map,
+  .width-summary,
+  .source-drawer {
+    margin-left: -10px;
+    margin-right: -10px;
+    padding: 14px 12px;
+  }
+
+  .stepper {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .step {
+    font-size: 12px;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+}
 
