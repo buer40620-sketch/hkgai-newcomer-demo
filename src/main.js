@@ -1,4 +1,4 @@
-﻿import { enhanceProfileInput, polishConsultationQuestions } from "./apiClient.js";
+import { enhanceProfileInput, polishConsultationQuestions } from "./apiClient.js";
 
 const app = document.querySelector("#app");
 
@@ -29,6 +29,7 @@ const state = {
   },
   copied: false,
   completedTaskIds: [],
+  completedPrepTaskIds: [],
   lastSavedSummary: null,
   api: {
     isLoading: false,
@@ -309,6 +310,12 @@ const shallowTaskDetails = {
     boundary: "港话通不能判断某个业主、中介、链接或账户一定真假。涉及诈骗、人身安全或财产损失时，应联系 18222、警方或紧急服务。",
     enhancement: "可扩展：风险清单、证据保存模板、18222 咨询问题。"
   },
+  bank_account_preparation_001: {
+    scene: "银行开户不是比哪家优惠，而是先确认自己能不能顺利开户、需要什么材料、手机号和地址资料是否能通过目标银行要求。",
+    hkgaiRole: ["把开户准备拆成官方入口、预约、手机号、地址资料和防骗提醒", "提醒不要相信代开户、非官方链接或优惠诱导", "需要材料判断时转向目标银行确认"],
+    boundary: "港话通不推荐银行、不比较套餐或优惠，也不承诺一定开户成功。开户材料、地址要求和审批结果以目标银行官方入口、客服或分行为准。",
+    enhancement: "可扩展：银行开户材料确认问题、官方入口跳转、防骗提醒清单。"
+  },
   bank_medical_community_001: {
     scene: "第一个月稳定下来后，用户会开始处理银行、医疗和社区支持。这里展示港话通能把公共服务入口分流，而不是只讲住址证明。",
     hkgaiRole: ["把银行开户、医疗入口、社区/NGO 支持分成不同下一步", "医疗问题只做入口导航和安全提醒", "需要人工支持时转 IFSC、HAD 或服务机构"],
@@ -578,12 +585,66 @@ function tasksForCurrentPersona() {
   return state.tasks.map(displayTask);
 }
 
+const prepTaskIds = ["telecom_001", "entry_documents_001", "transport_payment_001"];
+
+function shouldShowPrepCompletion() {
+  return state.profile.arrival_stage !== "抵港前";
+}
+
+function prepTaskItems() {
+  return prepTaskIds.map((taskId) => getTask(taskId)).filter(Boolean);
+}
+
+function isPrepTaskCompleted(taskId) {
+  return (state.completedPrepTaskIds || []).includes(taskId);
+}
+
+function missingPrepTasks() {
+  if (!shouldShowPrepCompletion()) return prepTaskItems();
+  return prepTaskItems().filter((task) => !isPrepTaskCompleted(task.task_id));
+}
+
+function completedPrepTasks() {
+  if (!shouldShowPrepCompletion()) return [];
+  return prepTaskItems().filter((task) => isPrepTaskCompleted(task.task_id));
+}
+
+function tasksForTimelineStage(stage) {
+  const tasks = tasksForCurrentPersona().filter((task) => task.stage === stage);
+  if (stage !== "pre_arrival" || !shouldShowPrepCompletion()) return tasks;
+  return tasks.filter((task) => !isPrepTaskCompleted(task.task_id));
+}
+
 function focusBadges() {
   return currentPersona().focusBadges || widthEnhancementBadges;
 }
 
 function taskBadge(taskId) {
   return focusBadges()[taskId];
+}
+
+function taskAssistMeta(task) {
+  const phrase = phraseItemsForTask(task)[0];
+  if (!phrase?.assist_type) return null;
+  const labels = {
+    onsite: "\u73b0\u573a\u5f00\u53e3",
+    copy_question: "\u590d\u5236\u786e\u8ba4",
+    email: "\u90ae\u4ef6\u786e\u8ba4",
+    checklist: "\u6e05\u5355\u81ea\u67e5",
+    official_question: "\u5b98\u65b9\u786e\u8ba4",
+    risk_escalation: "\u98ce\u9669\u6c42\u8bc1",
+    service_routing: "\u5165\u53e3\u5206\u6d41"
+  };
+  return {
+    type: phrase.assist_type,
+    label: labels[phrase.assist_type] || "\u8868\u8fbe\u8f85\u52a9"
+  };
+}
+
+function renderTaskAssistBadge(task, variant = "mini") {
+  const meta = taskAssistMeta(task);
+  if (!meta) return "";
+  return `<span class="assist-${variant} assist-${meta.type}">${meta.label}</span>`;
 }
 
 function applyPersona(userGroup) {
@@ -667,11 +728,11 @@ function sourceIdsForCurrentContext() {
 }
 function describeSourceLevel(level) {
   return {
-    S: "官方 / 法定机构",
-    A: isFamilyPersona() ? "机构样例 / 公共机构" : "学校 / 公共机构",
+    S: "官方 / 监管 / 法定机构",
+    A: "待确认官方入口 / 机构样例",
     B: "NGO / 服务机构",
     C: "国际案例",
-    D: "痛点线索"
+    D: "经验 / 媒体样例"
   }[level] || "需确认来源";
 }
 
@@ -682,19 +743,45 @@ function describeSourceType(type) {
     government_enquiry: "政府兜底查询",
     statutory_body: "法定机构说明",
     school_housing: isFamilyPersona() ? "机构住处材料样例" : "学校宿舍 / 住处材料",
-    school_student_affairs: isFamilyPersona() ? "机构服务入口" : "学校学生事务"
+    school_student_affairs: isFamilyPersona() ? "机构服务入口" : "学校学生事务",
+    school_example: "学校样例来源",
+    telecom_regulator: "通信监管来源",
+    operator_pending: "运营商官方入口待补",
+    institution_pending: "目标机构确认入口待补",
+    student_experience: "学生经验来源",
+    media_test: "媒体实测样例",
+    transport_tool: "官方交通工具",
+    weather_tool: "官方天气工具",
+    payment_tool: "支付服务入口",
+    anti_fraud_hotline: "防骗热线",
+    police_emergency: "警方 / 紧急入口",
+    healthcare_entry: "医疗服务入口",
+    social_service_entry: "社会服务入口",
+    newcomer_service_entry: "新来港服务入口"
   }[type] || "可信来源";
 }
 
-function groupSources(sources) {
-  const groups = [
-    ["官方 / 法定机构", sources.filter((source) => source.source_level === "S")],
-    [isFamilyPersona() ? "机构样例 / 公共来源" : "学校样例 / 机构来源", sources.filter((source) => source.source_level === "A")],
-    ["服务与人工兜底", sources.filter((source) => !["S", "A"].includes(source.source_level))]
-  ].filter(([, items]) => items.length);
-  return groups.length ? groups : [["当前来源", sources]];
+function isDirectSourceCard(source) {
+  if (!source.url) return false;
+  if (source.source_type?.includes("pending")) return false;
+  if (source.source_type === "student_experience") return false;
+  return true;
 }
 
+function isSourceReferenceNote(source) {
+  return !isDirectSourceCard(source);
+}
+
+function groupSources(sources) {
+  const cardSources = sources.filter(isDirectSourceCard);
+  const groups = [
+    ["官方 / 监管 / 法定机构", cardSources.filter((source) => source.source_level === "S")],
+    [isFamilyPersona() ? "机构样例 / 公共来源" : "学校样例 / 机构来源", cardSources.filter((source) => source.source_level === "A")],
+    ["经验 / 媒体样例", cardSources.filter((source) => ["D", "C"].includes(source.source_level) || source.source_type === "media_test")],
+    ["服务与人工兜底", cardSources.filter((source) => !["S", "A", "C", "D"].includes(source.source_level))]
+  ].filter(([, items]) => items.length);
+  return groups.length ? groups : [["可核验来源", cardSources]];
+}
 function matchRules() {
   const matches = state.rules.filter((rule) =>
     rule.purposes.some((purpose) => state.matcher.purposes.includes(purpose))
@@ -834,7 +921,7 @@ function renderWelcome() {
           <p class="setup-label">${t("personaQuestion")}</p>
           <div class="choice-row" aria-label="用户身份">
             ${profileOptions
-              .map((item) => `<button class="chip ${item === state.profile.user_group ? "selected" : ""}" data-profile="${item}">${tp(item)}</button>`)
+              .map((item) => `<button type="button" class="chip ${item === state.profile.user_group ? "selected" : ""}" data-profile="${item}">${tp(item)}</button>`)
               .join("")}
           </div>
         </div>
@@ -842,10 +929,11 @@ function renderWelcome() {
           <p class="setup-label">${t("stageQuestion")}</p>
           <div class="choice-row" aria-label="抵港阶段">
             ${["抵港前", "刚抵港", "抵港第一周", "第一月"]
-              .map((item) => `<button class="chip ${item === state.profile.arrival_stage ? "selected" : ""}" data-stage="${item}">${ts(item)}</button>`)
+              .map((item) => `<button type="button" class="chip ${item === state.profile.arrival_stage ? "selected" : ""}" data-stage="${item}">${ts(item)}</button>`)
               .join("")}
           </div>
         </div>
+        ${renderPrepCompletionSetup()}
       </div>
       ${renderApiStatus("profile")}
       <p class="hero-footnote">${t("footer")}</p>
@@ -853,6 +941,246 @@ function renderWelcome() {
   `;
 }
 
+function renderPrepCompletionSetup() {
+  if (!shouldShowPrepCompletion()) return "";
+  const label = state.profile.arrival_stage === "刚抵港" ? "你已经完成哪些前置事项？" : "这些前置事项哪些已经完成？";
+  return `
+    <div class="setup-group prep-completion-setup" aria-label="前置事项完成情况">
+      <p class="setup-label">${label}</p>
+      <div class="prep-check-row">
+        ${prepTaskItems()
+          .map(
+            (task) => `
+              <label class="prep-check ${isPrepTaskCompleted(task.task_id) ? "checked" : ""}">
+                <input type="checkbox" data-prep-done="${task.task_id}" ${isPrepTaskCompleted(task.task_id) ? "checked" : ""} />
+                <span>${task.title}</span>
+              </label>
+            `
+          )
+          .join("")}
+      </div>
+      <small>未勾选会进入 P1 的“马上补做 / 本周补齐”，已勾选会降到后续维护。</small>
+    </div>
+  `;
+}
+
+function renderPrepRerankPanel() {
+  if (!shouldShowPrepCompletion()) return "";
+  const missing = missingPrepTasks();
+  const done = completedPrepTasks();
+  return `
+    <section class="prep-rerank-panel" aria-label="前置漏项补排结果">
+      <p class="eyebrow">系统已按当前位置补排</p>
+      <h2>不是从头看攻略，而是先补你还没做的事</h2>
+      <div class="prep-rerank-grid">
+        <div>
+          <strong>马上补做</strong>
+          ${missing.length ? `<ul>${missing.map((task) => `<li>${task.title}</li>`).join("")}</ul>` : `<p>前置事项已勾选完成，本阶段可以转向学校、住处、银行和公共服务确认。</p>`}
+        </div>
+        <div>
+          <strong>已完成 / 后续维护</strong>
+          ${done.length ? `<ul>${done.map((task) => `<li>${task.title}</li>`).join("")}</ul>` : `<p>还没有勾选已完成事项，系统会先把前置任务压到当前补做段。</p>`}
+        </div>
+      </div>
+    </section>
+  `;
+}
+function currentReorderPlan() {
+  const stage = state.profile.arrival_stage;
+  const family = isFamilyPersona();
+  const plans = {
+    "抵港前": {
+      eyebrow: "普通攻略会怎么做",
+      title: "从头按时间看任务",
+      before: "用户还没出发，时间线本身是合理的。",
+      after: family ? "先整理证件、临时住处、通信和交通，再进入家庭服务入口。" : "先整理通信、证件、临时住处和交通支付，再进入学校/住处/材料任务。",
+      impact: "现在重点不是重排，而是提前防漏。"
+    },
+    "刚抵港": {
+      eyebrow: "系统已按当前位置重排",
+      title: "不是从头看攻略，而是先补遗漏",
+      before: "普通攻略仍会从“到港前”开始列清单。",
+      after: family ? "港话通把证件、通信、临时住处和交通支付移入“马上补做”，本周再处理住处、医疗、社区和政府入口。" : "港话通把通信、证件材料、临时住处和交通支付移入“马上补做”，本周再处理学校报到、HKID、租房风险和住处材料。",
+      impact: "价值：用户已经走到中途，也能追回前置漏项。"
+    },
+    "抵港第一周": {
+      eyebrow: "系统已按第一周重排",
+      title: "先补卡住后续办事的事项",
+      before: "普通攻略会把前置准备留在过去时间段里。",
+      after: family ? "港话通把仍会影响家庭办事的证件、通信、住处和交通事项压到“本周补齐”，再安排医疗、社区和银行入口。" : "港话通把仍会影响学校、银行、HKID 和住处材料的前置事项压到“本周补齐”。",
+      impact: "价值：不是展示过去做什么，而是判断现在还欠什么。"
+    },
+    "第一月": {
+      eyebrow: "系统已按第一个月重排",
+      title: "从办事入口转成持续确认",
+      before: "普通攻略到第一个月仍会继续罗列任务。",
+      after: family ? "港话通把重点改成政府服务、社区/NGO、医疗、银行和地址信息的持续确认。" : "港话通把重点改成住处材料、银行、政府地址、学校记录和医疗社区入口的持续确认。",
+      impact: "价值：从一次性 checklist 变成后续维护清单。"
+    }
+  };
+  return plans[stage] || plans["抵港前"];
+}
+
+function renderReorderInsight() {
+  const plan = currentReorderPlan();
+  return `
+    <section class="reorder-insight" aria-label="系统重排结果">
+      <p class="eyebrow">${plan.eyebrow}</p>
+      <h2>${plan.title}</h2>
+      <div class="before-after-grid">
+        <div>
+          <strong>旧方式</strong>
+          <p>${plan.before}</p>
+        </div>
+        <div>
+          <strong>港话通</strong>
+          <p>${plan.after}</p>
+        </div>
+      </div>
+      <p class="impact-line">${plan.impact}</p>
+    </section>
+  `;
+}
+
+function taskRouting(task) {
+  const family = isFamilyPersona();
+  const routeMap = {
+    telecom: {
+      type: "工具入口",
+      askFirst: "先问电讯商 / 学校 IT",
+      needs: "手机号码状态、验证码接收方式",
+      action: "别先查政策，先保证能收验证码。"
+    },
+    entry_documents: family
+      ? {
+          type: "政府咨询",
+          askFirst: "先问入境处 / 1823",
+          needs: "入境身份、证件材料、家庭成员情况",
+          action: "先归档材料，再按政府入口确认。"
+        }
+      : {
+          type: "学校确认 + 政府咨询",
+          askFirst: "先问学校 Registry，再问入境处 / 1823",
+          needs: "录取信、签注/入境材料、学校要求",
+          action: "不要用攻略替代学校或政府要求。"
+        },
+    transport: {
+      type: "实时工具",
+      askFirst: "先查 HKeMobility / 天文台 / 八达通",
+      needs: "出发地、目的地、支付方式、天气状态",
+      action: "这是低风险工具题，最终看官方实时入口。"
+    },
+    housing_materials: family
+      ? {
+          type: "住处 + 政府/银行确认",
+          askFirst: "先问 1823 或目标银行，再问服务机构",
+          needs: "住处状态、用途、已有材料、目标机构",
+          action: "不要直接问材料能不能用，先拆用途和确认方。"
+        }
+      : {
+          type: "学校/银行/政府分流",
+          askFirst: "先问本校办公室，再问目标银行或 1823",
+          needs: "住处状态、用途、已有材料、目标机构",
+          action: "同一材料按用途分开确认。"
+        },
+    school_checkin: {
+      type: "学校确认",
+      askFirst: "先问本校 Registry / 学生事务处",
+      needs: "学校、住处状态、学生记录要求",
+      action: "学校样例只告诉你入口类型，不代表所有学校。"
+    },
+    housing_safety: {
+      type: "高风险暂停",
+      askFirst: "先停付款，问 18222 / 警方 / 学校住宿办",
+      needs: "广告、聊天记录、收款信息、签约方式",
+      action: "AI 不判断真假，先保存证据并转专业入口。"
+    },
+    hkid: {
+      type: "政府官方入口",
+      askFirst: "先问入境处 / 1823",
+      needs: "到港日期、身份类别、预约状态",
+      action: "只走官方入口，不用攻略替代申请要求。"
+    },
+    bank_account: {
+      type: "\u94f6\u884c\u5f00\u6237\u51c6\u5907",
+      askFirst: "\u5148\u95ee\u76ee\u6807\u94f6\u884c\u5b98\u65b9\u5165\u53e3 / \u5206\u884c",
+      needs: "\u8eab\u4efd\u8bc1\u660e\u3001\u9999\u6e2f\u624b\u673a\u53f7\u3001\u4f4f\u5740\u8d44\u6599\u3001\u9884\u7ea6\u6216\u5f00\u6237\u6e20\u9053",
+      action: "\u53ea\u505a\u5f00\u6237\u51c6\u5907\u548c\u9632\u9a97\u63d0\u9192\uff0c\u4e0d\u63a8\u8350\u94f6\u884c\u3001\u4e0d\u6bd4\u8f83\u4f18\u60e0\u3002"
+    },
+    settling_in: {
+      type: family ? "社区/医疗/银行分流" : "银行/医疗/社区分流",
+      askFirst: family ? "按事项问 HAD / IFSC / HA / 目标银行" : "按事项问目标银行 / HA / IFSC / 学校",
+      needs: "所在地区、服务需要、目标银行、紧急程度",
+      action: "医疗不诊断，银行和社区服务不判断资格。"
+    }
+  };
+  return routeMap[task.category] || {
+    type: "服务入口分流",
+    askFirst: task.fallback_channels?.[0] || "目标机构",
+    needs: (task.required_inputs || []).join("、") || "当前情境",
+    action: "先确认负责入口，再执行下一步。"
+  };
+}
+
+function renderRoutingMini(task) {
+  const route = taskRouting(task);
+  return `<em class="routing-mini">${route.type} · ${route.askFirst}</em>`;
+}
+
+function renderServiceRoutingCard(task) {
+  const route = taskRouting(task);
+  return `
+    <section class="routing-card" aria-label="服务入口分流">
+      <p class="eyebrow">服务入口分流</p>
+      <h2>这件事先问谁，不让你在入口之间乱跳</h2>
+      <div class="routing-grid">
+        <p><strong>系统识别为</strong><span>${route.type}</span></p>
+        <p><strong>先问谁</strong><span>${route.askFirst}</span></p>
+        <p><strong>需要带什么</strong><span>${route.needs}</span></p>
+      </div>
+      <p class="impact-line">${route.action}</p>
+    </section>
+  `;
+}
+
+function buildUncertaintyBreakdown(rule) {
+  const family = isFamilyPersona();
+  const targets = family ? "1823 / 目标银行 / IFSC 或服务机构" : "本校办公室 / 目标银行 / 1823";
+  return {
+    why: family ? "家庭、住处、银行和社区服务的接受标准分属不同机构，港话通不能替它们判断资格。" : "学校、银行和政府部门接受材料的标准不同，学校样例不能推成全港通用规则。",
+    missing: rule.confirm_items?.slice(0, 3) || [],
+    ask: `把用途、住处状态和材料字段带去问 ${targets}。`
+  };
+}
+
+function renderUncertaintyBox(rule) {
+  const breakdown = buildUncertaintyBreakdown(rule);
+  return `
+    <div class="uncertainty-box">
+      <strong>不是一句 needs_confirm：系统把不确定拆成下一步</strong>
+      <p>${breakdown.why}</p>
+      <div class="uncertainty-grid">
+        <div><span>还缺什么</span><ul>${breakdown.missing.map((item) => `<li>${item}</li>`).join("")}</ul></div>
+        <div><span>下一步怎么问</span><p>${breakdown.ask}</p></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderQuestionRoutingCard(context) {
+  const family = isFamilyPersona();
+  return `
+    <section class="routing-card question-route-card">
+      <p class="eyebrow">不确定性拆解器</p>
+      <h2>不能替你下结论，但把问题拆到可以问</h2>
+      <div class="routing-grid">
+        <p><strong>为什么不能直接答</strong><span>${family ? "家庭服务、医疗、银行和政府事项分属不同机构。" : "学校、银行、政府对同一地址材料要求不同。"}</span></p>
+        <p><strong>你现在缺口</strong><span>${context.materialText} · ${context.livingText} · ${context.purposeText}</span></p>
+        <p><strong>建议问法</strong><span>${family ? "先问 1823 确认入口，再按事项问服务机构。" : "先问本校哪个办公室，再问目标银行或政府入口。"}</span></p>
+      </div>
+    </section>
+  `;
+}
 function renderRoadmap() {
   const persona = currentPersona();
   const timeline = currentTimeline();
@@ -873,6 +1201,7 @@ function renderRoadmap() {
         ${routeLabels.map((item, index) => `<span class="${index === routeLabels.length - 1 ? "deep-step" : ""}">${ts(item)}</span>`).join("")}
       </div>
     </section>
+    ${renderReorderInsight()}
     ${renderWidthSummary()}
     ${renderTaskMap(timeline)}
     <p class="map-hint">${t("mapHint")}</p>
@@ -929,12 +1258,38 @@ function taskIcon(task) {
     hkid: "id",
     settling_in: "home",
     bank_medical: "bank",
+    bank_account: "bank",
     medical_entry: "medical",
     community_support: "heart"
   };
   return icons[task.category] || icons[task.task_id] || "dot";
 }
 
+function renderTaskNodeTags(task) {
+  const badge = taskBadge(task.task_id);
+  const assist = renderTaskAssistBadge(task);
+  if (!badge && !assist) return "";
+  return `<div class="node-tags">${badge ? `<em>${badge.short}</em>` : ""}${assist}</div>`;
+}
+function renderCompletedPrepNodes() {
+  const done = completedPrepTasks();
+  if (!done.length) return "";
+  return `
+    <div class="completed-prep-nodes" aria-label="已完成前置事项">
+      <strong>已完成 / 后续维护</strong>
+      ${done
+        .map(
+          (task) => `
+            <button class="completed-prep-node" data-open-task="${task.task_id}">
+              <span class="route-icon ${taskIcon(task)}" aria-hidden="true"></span>
+              <span>${task.title}</span>
+            </button>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+}
 function renderTaskMap(timeline) {
   return `
     <section class="task-map" aria-label="第一月任务地图">
@@ -948,23 +1303,26 @@ function renderTaskMap(timeline) {
       <div class="map-lanes timeline-list">
         ${timeline
           .map(([stage, title, desc]) => {
-            const tasks = tasksForCurrentPersona().filter((task) => task.stage === stage);
+            const tasks = tasksForTimelineStage(stage);
             return `
               <div class="map-lane timeline-section">
                 <div class="map-stage timeline-stage"><span class="route-icon ${stageIcon(stage)}" aria-hidden="true"></span><strong>${ts(title)}</strong><small>${desc}</small></div>
                 <div class="map-nodes timeline-nodes">
-                  ${tasks
+                  ${tasks.length
+                    ? tasks
                     .map(
                       (task) => `
                         <button class="map-node timeline-node ${task.task_depth === "deep" ? "deep-node" : ""} ${taskBadge(task.task_id) ? "width-node" : ""} ${task.risk_level}" data-open-task="${task.task_id}">
                           <span class="route-icon ${taskIcon(task)}" aria-hidden="true"></span>
                           <strong>${task.title}</strong>
-                          ${taskBadge(task.task_id) ? `<em>${taskBadge(task.task_id).short}</em>` : ""}
+                          ${renderTaskNodeTags(task)}
                           <small>${task.summary}</small>
                         </button>
                       `
                     )
-                    .join("")}
+                    .join("")
+                    : `<div class="empty-stage-note">前置事项已完成，本段转入后续维护。</div>`}
+                  ${stage === "pre_arrival" ? renderCompletedPrepNodes() : ""}
                 </div>
               </div>
             `;
@@ -983,6 +1341,7 @@ function renderTaskCard(task) {
         <span class="badge risk ${task.risk_level}">${labels.risk[task.risk_level]}</span>
         <span class="badge status">${labels.status[task.status]}</span>
         ${taskBadge(task.task_id) ? `<span class="badge width-badge">${taskBadge(task.task_id).label}</span>` : ""}
+        ${renderTaskAssistBadge(task, "card-badge")}
         ${completed ? '<span class="badge done">已生成咨询问题</span>' : ""}
       </div>
       <h3>${task.title}</h3>
@@ -1018,25 +1377,96 @@ function phraseItemsForTask(task) {
   return state.phrases[task.category] || state.phrases[task.task_id] || [];
 }
 
+function phraseAssistMeta(type) {
+  return {
+    onsite: {
+      eyebrow: "现场开口",
+      title: "到现场先这样开口",
+      aria: "现场开口辅助"
+    },
+    copy_question: {
+      eyebrow: "复制给机构问",
+      title: "不要现场猜，按用途复制去确认",
+      aria: "机构咨询问题"
+    },
+    email: {
+      eyebrow: "邮件 / 官网确认",
+      title: "学校事项优先这样问负责办公室",
+      aria: "学校邮件确认"
+    },
+    checklist: {
+      eyebrow: "抵港前自查",
+      title: "先建一个办事文件夹",
+      aria: "办事文件夹提示"
+    },
+    official_question: {
+      eyebrow: "官方入口确认",
+      title: "把身份和日期带去问官方入口",
+      aria: "官方确认问题"
+    },
+    risk_escalation: {
+      eyebrow: "高风险求证",
+      title: "先暂停，再问专业入口",
+      aria: "风险求证话术"
+    },
+    service_routing: {
+      eyebrow: "问对服务入口",
+      title: "先确认该找哪个机构",
+      aria: "服务入口确认"
+    }
+  }[type] || {
+    eyebrow: "本地表达参考",
+    title: "把问题说清楚",
+    aria: "本地表达参考"
+  };
+}
+
 function renderLocalPhraseCard(task) {
   const phrases = phraseItemsForTask(task);
   if (!phrases.length) return "";
+  const meta = phraseAssistMeta(phrases[0].assist_type);
   return `
-    <div class="phrase-card" aria-label="现场一句话">
-      <p class="eyebrow">现场一句话</p>
-      <h2>到现场先这样开口</h2>
+    <div class="phrase-card assist-${phrases[0].assist_type || "default"}" aria-label="${meta.aria}">
+      <p class="eyebrow">${meta.eyebrow}</p>
+      <h2>${meta.title}</h2>
       ${phrases
         .map(
           (item) => `
             <div class="phrase-item">
               <strong>${item.phrase}</strong>
               <span>${item.meaning}</span>
+              ${item.jyutping ? `<p class="jyutping-line"><b>发音参考</b>${item.jyutping}</p>` : ""}
               <small>${item.scene} · ${item.note}</small>
             </div>
           `
         )
         .join("")}
     </div>
+  `;
+}
+
+function renderTaskInsightSections(task) {
+  if (!task.insight_sections?.length && !task.source_note) return "";
+  return `
+    <section class="task-insight-card" aria-label="任务浅层详情">
+      <p class="eyebrow">浅层任务加深</p>
+      <h2>${task.title}</h2>
+      ${
+        task.insight_sections?.length
+          ? `<div class="insight-grid">${task.insight_sections
+              .map(
+                (item) => `
+                  <div>
+                    <strong>${item.title}</strong>
+                    <p>${item.body}</p>
+                  </div>
+                `
+              )
+              .join("")}</div>`
+          : ""
+      }
+      ${task.source_note ? `<p class="source-boundary-line">${task.source_note}</p>` : ""}
+    </section>
   `;
 }
 
@@ -1086,6 +1516,8 @@ function renderTaskDetail() {
         <span class="badge status">${labels.status[task.status]}</span>
       </div>
       <p class="lead">${task.summary}</p>
+      ${renderServiceRoutingCard(task)}
+      ${renderTaskInsightSections(task)}
       <div class="detail-grid">
         <div>
           <h2>为什么推荐</h2>
@@ -1193,7 +1625,7 @@ function renderMatcher() {
       <div class="panel result-panel">
         <p class="eyebrow">住处与材料结果</p>
         <h2>结论：先稳住任务顺序，再按用途分开确认</h2>
-        <p class="subtle">当前阶段：${labels.phase[state.matcher.arrival_phase]}；住处状态：${labels.living[state.matcher.living_status]}。已匹配 ${state.matcher.matchedRules.length} 条材料规则，全部输出 <code>needs_confirm</code>。</p>
+        <p class="subtle">当前阶段：${labels.phase[state.matcher.arrival_phase]}；住处状态：${labels.living[state.matcher.living_status]}。已匹配 ${state.matcher.matchedRules.length} 条材料规则，全部输出 <code>needs_confirm</code>，但不止停在提示，而是拆成缺口、确认对象和下一步问法。</p>
         ${state.matcher.matchedRules.map(renderRuleResult).join("")}
         <div class="button-row">
           <button class="primary" data-page="P4">查看可信来源</button>
@@ -1222,6 +1654,7 @@ function renderRuleResult(rule) {
       </div>
       <strong>${rule.result_title}</strong>
       <ul>${rule.possible_paths.map((item) => `<li>${item}</li>`).join("")}</ul>
+      ${renderUncertaintyBox(rule)}
       <details>
         <summary>需要确认事项和下一步</summary>
         <h4>需要确认</h4>
@@ -1239,6 +1672,7 @@ function renderSourceDrawer() {
   const sources = getSources(ids);
   const task = getTask();
   const groups = groupSources(sources);
+  const referenceNotes = sources.filter(isSourceReferenceNote);
   return `
     <section class="drawer-page">
       <div class="source-drawer">
@@ -1247,9 +1681,9 @@ function renderSourceDrawer() {
         <h1>为什么这条建议可信，但仍需机构确认</h1>
         <p class="lead">当前任务：${task?.title || "第一月路线图"}</p>
         <div class="source-summary">
-          <div><strong>${sources.length}</strong><span>条来源</span></div>
-          <div><strong>${sources.filter((source) => source.source_level === "S").length}</strong><span>S 级官方/法定</span></div>
-          <div><strong>${sources.filter((source) => source.source_level === "A").length}</strong><span>A 级机构样例</span></div>
+          <div><strong>${sources.filter(isDirectSourceCard).length}</strong><span>可打开来源</span></div>
+          <div><strong>${sources.filter((source) => source.source_level === "S").length}</strong><span>S 级官方/监管</span></div>
+          <div><strong>${referenceNotes.length}</strong><span>确认路径/经验依据</span></div>
         </div>
         <div class="trust-strip source-warning">
           <strong>边界提示</strong>
@@ -1265,6 +1699,7 @@ function renderSourceDrawer() {
             `
           )
           .join("")}
+        ${renderSourceReferenceNotes(referenceNotes)}
         <div class="button-row">
           <button class="primary" data-page="P5">生成咨询问题</button>
           <button class="secondary" data-page="P1">回路线图</button>
@@ -1274,6 +1709,29 @@ function renderSourceDrawer() {
   `;
 }
 
+function renderSourceReferenceNotes(sources) {
+  if (!sources.length) return "";
+  return `
+    <section class="source-reference-notes" aria-label="确认路径和经验依据">
+      <h2>确认路径 / 经验依据</h2>
+      <p>这些不作为可直接打开的可信来源卡，只用于说明下一步应该问谁，或解释经验背景。</p>
+      <div class="reference-note-list">
+        ${sources
+          .map(
+            (source) => `
+              <article>
+                <strong>${source.name}</strong>
+                <span>${describeSourceType(source.source_type)}</span>
+                <p>${source.boundary_note}</p>
+                <small>最终确认方：${source.final_decision_maker}</small>
+              </article>
+            `
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
+}
 function renderSource(source) {
   return `
     <article class="source-card">
@@ -1291,7 +1749,6 @@ function renderSource(source) {
         <p><strong>最终确认方</strong><span>${source.final_decision_maker}</span></p>
       </div>
       <p class="boundary-note">${source.boundary_note}</p>
-      <div class="mini-meta">${source.task_tags.map((tag) => `<span>${tag}</span>`).join("")}</div>
       <a href="${source.url}" target="_blank" rel="noreferrer">打开来源链接</a>
     </article>
   `;
@@ -1305,6 +1762,7 @@ function renderQuestionGenerator() {
       <button class="link-btn" data-page="P3">← 返回住处与材料结果</button>
       <p class="eyebrow">P5 咨询问题生成器 / 兜底入口</p>
       <h1>不能替你下结论，但可以帮你问对问题</h1>
+      ${renderQuestionRoutingCard(context)}
       <div class="context-card">
         <h2>当前情境</h2>
         <div class="mini-meta">
@@ -1435,6 +1893,22 @@ function renderQuestion(question) {
 }
 
 function bindEvents() {
+  document.querySelector(".visible-setup")?.addEventListener("click", (event) => {
+    const profileButton = event.target.closest("[data-profile]");
+    if (profileButton) {
+      applyPersona(profileButton.dataset.profile);
+      render();
+      return;
+    }
+
+    const stageButton = event.target.closest("[data-stage]");
+    if (stageButton) {
+      state.profile.arrival_stage = stageButton.dataset.stage;
+      if (!shouldShowPrepCompletion()) state.completedPrepTaskIds = [];
+      syncProfileInput();
+      render();
+    }
+  });
   document.querySelectorAll("[data-page]").forEach((button) => {
     button.addEventListener("click", () => setPage(button.dataset.page));
   });
@@ -1464,16 +1938,14 @@ function bindEvents() {
       render();
     });
   });
-  document.querySelectorAll("[data-profile]").forEach((button) => {
-    button.addEventListener("click", () => {
-      applyPersona(button.dataset.profile);
-      render();
-    });
-  });
-  document.querySelectorAll("[data-stage]").forEach((button) => {
-    button.addEventListener("click", () => {
-      state.profile.arrival_stage = button.dataset.stage;
-      syncProfileInput();
+
+  document.querySelectorAll("[data-prep-done]").forEach((input) => {
+    input.addEventListener("change", () => {
+      const taskId = input.dataset.prepDone;
+      const completedPrepTaskIds = state.completedPrepTaskIds || [];
+      state.completedPrepTaskIds = input.checked
+        ? [...new Set([...completedPrepTaskIds, taskId])]
+        : completedPrepTaskIds.filter((item) => item !== taskId);
       render();
     });
   });
@@ -1503,8 +1975,3 @@ function bindEvents() {
 boot().catch((error) => {
   app.innerHTML = `<main class="main"><section class="panel"><h1>Demo 加载失败</h1><p>${error.message}</p></section></main>`;
 });
-
-
-
-
-
