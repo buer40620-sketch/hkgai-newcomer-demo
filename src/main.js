@@ -1,4 +1,4 @@
-import { enhanceProfileInput, polishConsultationQuestions } from "./apiClient.js";
+import { enhanceProfileInput, polishConsultationQuestions, queryTravelToolhub } from "./apiClient.js";
 
 const app = document.querySelector("#app");
 
@@ -35,6 +35,7 @@ const state = {
     isLoading: false,
     lastProfileRun: null,
     lastQuestionRun: null,
+    lastToolRun: null,
     polishedQuestions: null
   }
 };
@@ -705,9 +706,14 @@ async function fetchJson(path) {
   return response.json();
 }
 
+function isSelectedDeepTask() {
+  return getTask()?.task_id === "housing_materials_001";
+}
+
 function setPage(page) {
-  if (page !== state.page) state.previousPage = state.page;
-  state.page = page;
+  const targetPage = !isSelectedDeepTask() && ["P3", "P5"].includes(page) ? "P2" : page;
+  if (targetPage !== state.page) state.previousPage = state.page;
+  state.page = targetPage;
   state.copied = false;
   render();
 }
@@ -722,8 +728,10 @@ function getSources(sourceIds) {
 }
 
 function sourceIdsForCurrentContext() {
+  const task = getTask();
+  const taskIds = task?.source_ids || [];
+  if (task?.task_id !== "housing_materials_001") return [...new Set(taskIds)];
   const ruleIds = state.matcher.matchedRules.flatMap((rule) => rule.source_ids);
-  const taskIds = getTask()?.source_ids || [];
   return [...new Set([...ruleIds, ...taskIds])];
 }
 function describeSourceLevel(level) {
@@ -807,6 +815,8 @@ function updateMatcher(key, value, checked) {
 
 function openTask(taskId) {
   state.selectedTaskId = taskId;
+  state.selectedSourceIds = [];
+  state.api.lastToolRun = null;
   setPage("P2");
 }
 
@@ -880,7 +890,11 @@ function renderDemoNav() {
   return `
     <nav class="stepper" aria-label="Demo flow">
       ${["P0", "P1", "P2", "P3", "P4", "P5"]
-        .map((page) => `<button class="step ${state.page === page ? "active" : ""}" data-page="${page}">${page}</button>`)
+        .map((page) => {
+          const disabled = !isSelectedDeepTask() && ["P3", "P5"].includes(page);
+          const hint = disabled ? `<small class="step-sub">住处专用</small>` : "";
+          return `<button type="button" class="step ${state.page === page ? "active" : ""}" data-page="${page}" ${disabled ? "disabled title=\"仅住处与材料深水任务可进入\"" : ""}><span>${page}</span>${hint}</button>`;
+        })
         .join("")}
     </nav>
   `;
@@ -1435,7 +1449,8 @@ function renderLocalPhraseCard(task) {
             <div class="phrase-item">
               <strong>${item.phrase}</strong>
               <span>${item.meaning}</span>
-              ${item.jyutping ? `<p class="jyutping-line"><b>发音参考</b>${item.jyutping}</p>` : ""}
+              ${item.jyutping ? `<p class="jyutping-line"><b>粤拼参考</b>${item.jyutping}</p>` : ""}
+              ${item.pronunciation_hint ? `<p class="pronunciation-line"><b>近似读法</b>${item.pronunciation_hint}</p>` : ""}
               <small>${item.scene} · ${item.note}</small>
             </div>
           `
@@ -1494,6 +1509,15 @@ function simulateVoiceInput() {
   render();
 }
 
+function renderTaskModeNotice(task) {
+  const isDeep = task.task_id === "housing_materials_001";
+  return `
+    <div class="task-mode-note ${isDeep ? "deep-mode" : "light-mode"}">
+      <strong>${isDeep ? "深水任务" : "浅层任务"}</strong>
+      <p>${isDeep ? "这类任务需要进入 P3 追问阶段、住处、用途和材料，再到 P4/P5 生成来源与咨询问题。" : "当前任务只需要看 P2 详情和 P4 来源；P3/P5 仅用于“住处与材料”深水追问。"}</p>
+    </div>
+  `;
+}
 function renderTaskDetail() {
   const task = getTask();
   const isDeep = task.task_id === "housing_materials_001";
@@ -1515,8 +1539,10 @@ function renderTaskDetail() {
         <span class="badge risk ${task.risk_level}">${labels.risk[task.risk_level]}</span>
         <span class="badge status">${labels.status[task.status]}</span>
       </div>
+      ${renderTaskModeNotice(task)}
       <p class="lead">${task.summary}</p>
       ${renderServiceRoutingCard(task)}
+      ${renderToolhubEnhancement(task)}
       ${renderTaskInsightSections(task)}
       <div class="detail-grid">
         <div>
@@ -1817,6 +1843,66 @@ function buildTemplateQuestions() {
     }));
 }
 
+function isToolhubTransportTask(task) {
+  return task?.category === "transport" || task?.task_id === "transport_payment_001";
+}
+
+function renderToolhubEnhancement(task) {
+  if (!isToolhubTransportTask(task)) return "";
+  const run = state.api.lastToolRun;
+  return `
+    <section class="toolhub-card">
+      <p class="eyebrow">9.8 ToolHub 增强位：交通 / 天气</p>
+      <h2>低风险工具题，适合接实时工具，但不影响主线</h2>
+      <p>未来可以接交通路线、票价、天气警告等工具；当前没有后端凭证时，只展示官方入口和本地 fallback。</p>
+      ${run ? renderToolhubRun(run) : renderToolhubIdle()}
+      <button class="secondary small" data-action="run-toolhub">${state.api.isLoading ? "查询中..." : "模拟 ToolHub 查询"}</button>
+    </section>
+  `;
+}
+
+function renderToolhubIdle() {
+  return `
+    <div class="api-card idle toolhub-idle">
+      <strong>ToolHub 待接入</strong>
+      <p>交通和天气属于工具增强，不决定资格和材料可用性。没有实时工具时，路线图仍可继续。</p>
+      <span>状态：等待调用 · fallback ready</span>
+    </div>
+  `;
+}
+
+function renderToolhubRun(run) {
+  const snapshot = run.snapshot || {};
+  return `
+    <div class="toolhub-result">
+      <div class="mini-meta">
+        <span>mode: ${run.mode}</span>
+        <span>provider: ${run.provider}</span>
+        <span>live_api: ${run.used_live_api ? "true" : "false"}</span>
+      </div>
+      ${renderApiFallbackPanel(run)}
+      <div class="toolhub-call-list">
+        ${(run.toolhub_calls || []).map((item) => `<span>${item}</span>`).join("")}
+      </div>
+      <div class="toolhub-snapshot-grid">
+        <article>
+          <strong>路线</strong>
+          <p>${snapshot.route_summary || "以 HKeMobility / 官方公告为准。"}</p>
+        </article>
+        <article>
+          <strong>天气</strong>
+          <p>${snapshot.weather_note || "台风、暴雨和极端天气以香港天文台实时公告为准。"}</p>
+        </article>
+        <article>
+          <strong>支付</strong>
+          <p>${snapshot.payment_note || "准备八达通或移动支付；票价以官方渠道为准。"}</p>
+        </article>
+      </div>
+      <p class="toolhub-links">官方入口：${(snapshot.official_links || []).join(" / ")}</p>
+    </div>
+  `;
+}
+
 function renderApiStatus(kind) {
   const run = kind === "profile" ? state.api.lastProfileRun : state.api.lastQuestionRun;
   const title = kind === "profile" ? "P0 API 增强位：自然语言解析" : "P5 API 增强位：咨询问题润色";
@@ -1844,9 +1930,69 @@ function renderApiStatus(kind) {
         <span>provider: ${run.provider}</span>
         <span>live_api: ${run.used_live_api ? "true" : "false"}</span>
       </div>
-      ${run.inferred ? `<p>${run.inferred.summary}</p>` : ""}
+      ${renderApiFallbackPanel(run)}
+      ${kind === "profile" && run.inferred ? renderProfileInferencePanel(run.inferred) : ""}
+      ${kind !== "profile" && run.inferred ? `<p>${run.inferred.summary}</p>` : ""}
     </div>
   `;
+}
+
+function renderApiFallbackPanel(run) {
+  if (run.used_live_api) {
+    return `
+      <section class="api-fallback-panel live">
+        <strong>真实 API 调用成功</strong>
+        <p>前端只调用后端代理，API Key 没有暴露在 GitHub Pages 或浏览器代码里。</p>
+      </section>
+    `;
+  }
+  return `
+    <section class="api-fallback-panel">
+      <strong>回退验收通过</strong>
+      <p>当前没有依赖真实 API，系统已回到本地 fallback，Demo 主流程不会中断。</p>
+      <ul>${(run.fallback_checks || []).map((item) => `<li>${item}</li>`).join("")}</ul>
+    </section>
+  `;
+}
+
+function renderProfileInferencePanel(inferred) {
+  const tagLabels = (inferred.intent_tags || []).map(profileIntentTagLabel);
+  const missing = shouldShowPrepCompletion() ? missingPrepTasks() : [];
+  const routeImpact = shouldShowPrepCompletion()
+    ? missing.length
+      ? `点击“开始规划”后，P1 会把 ${missing.map((task) => task.title).join("、")} 放进“马上补做 / 本周补齐”。`
+      : "你已勾选前置事项完成，P1 会转向学校、住处、银行和公共服务确认。"
+    : "你还在抵港前，系统先按出发前准备组织路线，不需要把前置事项补排到当前阶段。";
+
+  return `
+    <section class="profile-inference-panel" aria-label="自然语言解析结果">
+      <p class="eyebrow">解析结果</p>
+      <div class="inference-grid">
+        <p><strong>识别身份</strong><span>${tp(inferred.user_group)}</span></p>
+        <p><strong>当前阶段</strong><span>${ts(inferred.arrival_stage)}</span></p>
+        <p><strong>主要卡点</strong><span>${inferred.main_blocker}</span></p>
+        <p><strong>任务意图</strong><span>${tagLabels.join(" / ")}</span></p>
+      </div>
+      <div class="route-impact-box">
+        <strong>路线会怎么变</strong>
+        <p>${routeImpact}</p>
+      </div>
+      <p class="api-summary-line">${inferred.summary}</p>
+    </section>
+  `;
+}
+
+function profileIntentTagLabel(tag) {
+  const labels = {
+    telecom: "通信 / 验证码",
+    housing_materials: "住处与材料",
+    bank_account: "银行开户",
+    hkid: "香港身份证",
+    transport_payment: "交通 / 八达通",
+    first_week_plan: "第一周安排",
+    first_month_plan: "第一月路线"
+  };
+  return labels[tag] || tag;
 }
 
 async function runProfileEnhancement() {
@@ -1856,6 +2002,17 @@ async function runProfileEnhancement() {
   const result = await enhanceProfileInput(state.profile);
   state.api.lastProfileRun = result;
   state.profile = { ...state.profile, ...result.inferred };
+  state.api.isLoading = false;
+  render();
+}
+
+async function runToolhubEnhancement() {
+  const task = getTask();
+  if (!isToolhubTransportTask(task)) return;
+  state.api.isLoading = true;
+  render();
+  const result = await queryTravelToolhub({ task, profile: state.profile });
+  state.api.lastToolRun = result;
   state.api.isLoading = false;
   render();
 }
@@ -1870,6 +2027,25 @@ async function runQuestionPolish() {
   state.api.polishedQuestions = result.questions;
   state.api.isLoading = false;
   render();
+}
+function renderQuestionTextBlock(question) {
+  if (!question.original_text) return `<div class="question-text">${question.text}</div>`;
+  return `
+    <div class="question-polish-compare">
+      <div>
+        <strong>模板原文</strong>
+        <p>${question.original_text}</p>
+      </div>
+      <div>
+        <strong>润色后可发送</strong>
+        <div class="question-text polished">${question.text}</div>
+      </div>
+      <div class="rewrite-notes">
+        <strong>AI 做了什么</strong>
+        <ul>${(question.rewrite_notes || []).map((item) => `<li>${item}</li>`).join("")}</ul>
+      </div>
+    </div>
+  `;
 }
 function renderQuestion(question) {
   return `
@@ -1886,7 +2062,7 @@ function renderQuestion(question) {
         <summary>要确认什么</summary>
         <ul>${(question.confirm_checklist || []).map((item) => `<li>${item}</li>`).join("")}</ul>
       </details>
-      <div class="question-text">${question.text}</div>
+      ${renderQuestionTextBlock(question)}
       <div class="mini-meta">${question.fallback_channels.map((item) => `<span>${item}</span>`).join("")}</div>
     </article>
   `;
@@ -1920,6 +2096,7 @@ function bindEvents() {
   document.querySelector("[data-action='simulate-voice']")?.addEventListener("click", simulateVoiceInput);
   document.querySelector("[data-action='complete-loop']")?.addEventListener("click", completeAddressLoop);
   document.querySelector("[data-action='polish-questions']")?.addEventListener("click", runQuestionPolish);
+  document.querySelector("[data-action='run-toolhub']")?.addEventListener("click", runToolhubEnhancement);
   document.querySelector("[data-action='open-source-current']")?.addEventListener("click", () => {
     openSources(isFamilyPersona()
       ? ["HK-S-208-1823-CONTACT", "HK-S-502-SWD-IFSC", "HK-S-503-HAD-NEW-ARRIVALS"]

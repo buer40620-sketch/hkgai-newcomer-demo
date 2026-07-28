@@ -1,72 +1,114 @@
 {
   "telecom": [
     {
-      "scene": "买电话卡 / 问套餐",
-      "phrase": "唔该，我想问下有冇短期电话卡？",
-      "meaning": "请问有没有短期电话卡？",
-      "note": "用于机场、便利店或电话卡门店先问清楚选择。"
+      "assist_type": "onsite",
+      "scene": "便利店 / 机场 / 电话卡门店",
+      "phrase": "唔该，我想问下有冇储值电话卡，短期用嗰种？",
+      "meaning": "请问有没有储值电话卡，短期用的那种？",
+      "jyutping": "m4 goi1, ngo5 soeng2 man6 haa5 jau5 mou5 cyu5 zik6 din6 waa2 kaat1, dyun2 kei4 jung6 go2 zung2?",
+      "note": "适合现场先开口询问；只是发音参考，不是粤语教学。",
+      "pronunciation_hint": "唔该 ≈ m goi；有冇 ≈ yau mou；储值电话卡 ≈ cyu zik din waa kaat"
     }
   ],
   "entry_documents": [
     {
-      "scene": "整理证件材料",
-      "phrase": "我想确认要带咩文件。",
-      "meaning": "我想确认需要带什么文件。",
-      "note": "用于学校、政府柜台或服务台，先问材料清单。"
+      "assist_type": "checklist",
+      "scene": "办事文件夹",
+      "phrase": "我先把护照/通行证、签证或入境材料、录取信、学校邮件、临时住处材料、内地手机号和邮箱登录方式放到同一个文件夹。",
+      "meaning": "不是现场问一句，而是先把后续办事会反复用到的文件归档。",
+      "note": "适合抵港前自查；官方或学校要求仍以对应入口为准。"
     }
   ],
   "transport": [
     {
+      "assist_type": "onsite",
       "scene": "小巴下车",
       "phrase": "唔该，有落。",
       "meaning": "麻烦你，我要下车。",
-      "note": "绿色小巴常用；如果不确定路线，优先用地图和官方交通 App 确认。"
+      "note": "绿色小巴常用；如果不确定路线，优先用地图和官方交通 App 确认。",
+      "jyutping": "m4 goi1, jau5 lok6.",
+      "pronunciation_hint": "唔该 ≈ m goi；有落 ≈ yau lok"
     },
     {
+      "assist_type": "onsite",
       "scene": "问路 / 交通入口",
       "phrase": "唔该，我想问下去呢度点行？",
       "meaning": "请问去这里怎么走？",
-      "note": "适合问站务人员、服务台或店员。"
+      "note": "适合问站务人员、服务台或店员。",
+      "jyutping": "m4 goi1, ngo5 soeng2 man6 haa5 heoi3 ni1 dou6 dim2 haang4?",
+      "pronunciation_hint": "唔该 ≈ m goi；去呢度 ≈ heoi ni dou；点行 ≈ dim haang"
     }
   ],
   "housing_materials": [
     {
-      "scene": "确认地址证明",
-      "phrase": "我想确认呢份文件可唔可以做地址证明。",
-      "meaning": "我想确认这份文件能不能作为地址证明。",
-      "note": "只用于开启确认问题；最终是否接受仍以学校、银行、政府或目标机构为准。"
+      "assist_type": "copy_question",
+      "scene": "发给学校 / 银行 / 政府部门确认",
+      "phrase": "您好，我想确认这份材料是否可用于【具体用途】的地址证明。请问是否需要原件、英文版本、最近三个月日期、姓名和地址一致，或其他补充文件？",
+      "meaning": "把用途、材料和机构放进同一个问题里确认。",
+      "note": "住址证明不靠现场一句话解决；最终接受情况以目标机构审核为准。"
     }
   ],
   "school_checkin": [
     {
-      "scene": "学校报到 / 资料更新",
-      "phrase": "唔该，我想问下学生资料更新要去边度办？",
-      "meaning": "请问学生资料更新要去哪里办？",
-      "note": "不同学校办公室不同，先问入口，不要假设统一流程。"
+      "assist_type": "email",
+      "scene": "学校邮件 / 官网 / 老师确认",
+      "phrase": "您好，我想确认学生资料更新应使用哪个系统或联系哪个办公室？如果需要更新香港通讯地址或住宿资料，请问应按哪份官方指引办理？",
+      "meaning": "学校事项优先看邮件、官网和负责办公室，不假设所有学校流程一样。",
+      "note": "适合复制到邮件或学校系统咨询；学校样例只说明入口类型。"
     }
   ],
   "housing_safety": [
     {
-      "scene": "租房防骗",
-      "phrase": "我想核实呢个租盘同收款方式安唔安全。",
-      "meaning": "我想核实这个房源和付款方式是否安全。",
-      "note": "遇到可疑收款或远程签约，不要急着付款，先向 18222、警方或学校住宿办公室求证。"
+      "assist_type": "risk_escalation",
+      "scene": "租房防骗求证",
+      "phrase": "我想核实这个房源、收款账户和签约方式是否安全。现在是否应该暂停付款，并向 18222、警方或学校住宿办公室确认？",
+      "meaning": "遇到可疑收款或远程签约，先暂停并求证。",
+      "note": "港话通不判断真假，只帮助保存证据和转向专业入口。"
+    },
+    {
+      "assist_type": "onsite",
+      "scene": "看房 / 租房现场",
+      "phrase": "唔该，可唔可以睇下租约同收据？",
+      "meaning": "麻烦你，可不可以看一下租约和收据？",
+      "jyutping": "m4 goi1, ho2 m4 ho2 ji5 tai2 haa5 zou1 joek3 tung4 sau1 geoi3?",
+      "pronunciation_hint": "唔该 ≈ m goi；可唔可以 ≈ ho m ho yi；租约 ≈ zou joek；收据 ≈ sau geoi",
+      "note": "只适合现场索取文件；是否安全仍要做风险核验，不能凭一句话判断真假。"
     }
   ],
   "hkid": [
     {
-      "scene": "身份证预约 / 政府服务",
-      "phrase": "唔该，我想问下预约身份证要准备咩资料。",
-      "meaning": "请问预约身份证需要准备什么资料？",
-      "note": "用于向官方或服务台确认资料；正式要求以入境处为准。"
+      "assist_type": "official_question",
+      "scene": "政府服务确认",
+      "phrase": "您好，我想确认以我目前的到港日期和身份类别，是否需要预约香港身份证，以及需要准备哪些官方文件？",
+      "meaning": "请官方入口确认预约和材料要求。",
+      "note": "正式要求以入境处或政府官方入口为准。"
     }
   ],
   "settling_in": [
     {
+      "assist_type": "service_routing",
       "scene": "社区 / 医疗 / 银行入口",
-      "phrase": "唔该，我想问下呢件事应该搵边个部门？",
-      "meaning": "请问这件事应该找哪个部门？",
-      "note": "适合不知道该问 1823、社区中心、银行还是医疗入口时使用。"
+      "phrase": "您好，我想确认这件事应该先联系哪个机构：1823、社区中心、银行、医疗入口，还是其他服务单位？",
+      "meaning": "先问入口，不直接判断资格或结果。",
+      "note": "适合不知道该找哪个部门时使用。"
+    },
+    {
+      "assist_type": "onsite",
+      "scene": "服务台 / 社区中心 / 大堂询问",
+      "phrase": "唔该，我想问呢件事应该去边度问？",
+      "meaning": "麻烦你，我想问这件事应该去哪里咨询？",
+      "jyutping": "m4 goi1, ngo5 soeng2 man6 ni1 gin6 si6 jing1 goi1 heoi3 bin1 dou6 man6?",
+      "pronunciation_hint": "唔该 ≈ m goi；呢件事 ≈ ni gin si；去边度问 ≈ heoi bin dou man",
+      "note": "适合先找服务入口；资格、费用、审批结果仍由对应机构确认。"
+    }
+  ],
+  "bank_account": [
+    {
+      "assist_type": "official_question",
+      "scene": "目标银行 / 分行 / 官方客服确认",
+      "phrase": "您好，我想确认开户前需要准备哪些文件。现在我有身份证明、香港手机号和地址资料，请问是否需要预约、香港住址证明、英文版本或最近三个月日期？",
+      "meaning": "把开户材料、手机号、地址资料和预约要求一次问清楚。",
+      "note": "只用于向目标银行确认，不推荐哪家银行，也不承诺一定可以开户。"
     }
   ]
 }

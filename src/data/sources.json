@@ -417,5 +417,198 @@
     "last_verified_at": "2026-07-23",
     "final_decision_maker": "Home Affairs Department and listed service providers",
     "boundary_note": "Use as newcomer service directory; it does not replace direct confirmation with the service provider."
+  },
+  {
+    "source_id": "HK-S-401-OFCA-ROAMING",
+    "name": "OFCA 漫游服务提醒",
+    "source_level": "S",
+    "source_type": "telecom_regulator",
+    "owner": "通讯事务管理局办公室 OFCA",
+    "url": "https://www.ofca.gov.hk/en/consumer_focus/guide/advice_roaming/voice/index.html",
+    "task_tags": [
+      "telecom",
+      "roaming",
+      "verification_code"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student",
+      "family"
+    ],
+    "answer_allowed": true,
+    "last_verified_at": "2026-07-27",
+    "final_decision_maker": "电讯商和目标账号服务方",
+    "boundary_note": "用于提醒漫游和服务差异；不能保证任何手机号一定能收到验证码。"
+  },
+  {
+    "source_id": "HK-S-402-OFCA-SMS",
+    "name": "OFCA 短信 / MMS 收费风险提醒",
+    "source_level": "S",
+    "source_type": "telecom_regulator",
+    "owner": "通讯事务管理局办公室 OFCA",
+    "url": "https://www.ofca.gov.hk/en/consumer_focus/guide/general/beware_of_chargeable_mobile/index.html",
+    "task_tags": [
+      "telecom",
+      "sms",
+      "risk"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student",
+      "family"
+    ],
+    "answer_allowed": true,
+    "last_verified_at": "2026-07-27",
+    "final_decision_maker": "电讯商和相关服务提供方",
+    "boundary_note": "用于短信收费和误订风险提醒；不能变成电话卡套餐推荐。"
+  },
+  {
+    "source_id": "HK-PENDING-403-OPERATOR-SIM",
+    "name": "运营商官方储值卡 / 电话卡说明待补",
+    "source_level": "A",
+    "source_type": "operator_pending",
+    "owner": "目标电讯商",
+    "url": "",
+    "task_tags": [
+      "telecom",
+      "stored_value_card",
+      "real_name_registration"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student",
+      "family"
+    ],
+    "answer_allowed": false,
+    "last_verified_at": "2026-07-27",
+    "final_decision_maker": "目标电讯商或门店",
+    "boundary_note": "待补 2-3 个主流运营商官方页面。套餐、价格、有效期和实名登记规则必须以运营商或门店确认为准。"
+  },
+  {
+    "source_id": "HK-PENDING-404-OTP-INSTITUTION",
+    "name": "学校 / 银行 / 政府账号验证码规则待确认",
+    "source_level": "A",
+    "source_type": "institution_pending",
+    "owner": "目标学校、银行或政府服务",
+    "url": "",
+    "task_tags": [
+      "verification_code",
+      "account_security",
+      "institution_confirm"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student",
+      "family"
+    ],
+    "answer_allowed": false,
+    "last_verified_at": "2026-07-27",
+    "final_decision_maker": "目标学校、银行或政府账号服务方",
+    "boundary_note": "验证码能否接收取决于具体账号服务。涉及学校、银行或政府账号时，应向对应机构确认备用验证方式。"
+  },
+  {
+    "source_id": "HK-D-405-MSSS-SIM-GUIDE",
+    "name": "MSSS 香港电话卡选购指南",
+    "source_level": "D",
+    "source_type": "student_experience",
+    "owner": "学生经验资料",
+    "url": "",
+    "task_tags": [
+      "telecom",
+      "student_experience",
+      "stored_value_card"
+    ],
+    "user_group_tags": [
+      "mainland_student",
+      "non_local_student"
+    ],
+    "answer_allowed": false,
+    "last_verified_at": "2026-07-27",
+    "final_decision_maker": "目标电讯商或门店",
+    "boundary_note": "只作为学生经验来源，用于解释储值卡、上台、实名登记、二手卡等概念和风险；不作为官方规则或套餐推荐。"
+  },
+  {
+    "source_id": "HK-D-406-HK01-SIM-TEST",
+    "name": "HK01 本地 SIM 年卡实测样例",
+    "source_level": "D",
+    "source_type": "media_test",
+    "owner": "HK01",
+    "url": "https://www.hk01.com/%E6%95%B8%E7%A2%BC%E7%94%9F%E6%B4%BB/1061965/",
+    "task_tags": [
+      "telecom",
+      "media_test",
+      "package_example"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student"
+    ],
+    "answer_allowed": false,
+    "last_verified_at": "2026-07-27",
+    "final_decision_maker": "目标电讯商或门店",
+    "boundary_note": "只作为媒体实测样例。价格、套餐和网络表现会变化，不能做榜单或推荐。"
+  },
+  {
+    "source_id": "HK-S-213-GOVHK-HKID-BOOKING",
+    "name": "GovHK: Book appointment for HKID registration",
+    "source_level": "S",
+    "source_type": "government_service",
+    "owner": "GovHK / Immigration Department",
+    "url": "https://www.gov.hk/sc/residents/immigration/idcard/hkic/bookregidcard.htm",
+    "task_tags": [
+      "hkid",
+      "appointment",
+      "government_service"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student"
+    ],
+    "answer_allowed": true,
+    "last_verified_at": "2026-07-27",
+    "final_decision_maker": "Immigration Department",
+    "boundary_note": "Official booking entry for HKID registration. Users must follow the latest form, quota and appointment instructions on GovHK / ImmD."
+  },
+  {
+    "source_id": "HK-S-214-IMMD-PERSON-REG-OFFICES",
+    "name": "ImmD: Registration of Persons Offices",
+    "source_level": "S",
+    "source_type": "government_department",
+    "owner": "Immigration Department",
+    "url": "https://www.immd.gov.hk/hks/contactus/person-registration.html",
+    "task_tags": [
+      "hkid",
+      "office_location",
+      "government_service"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student"
+    ],
+    "answer_allowed": true,
+    "last_verified_at": "2026-07-27",
+    "final_decision_maker": "Immigration Department",
+    "boundary_note": "Use for office locations and opening hours only; appointment availability and document requirements must be checked through official booking and application pages."
+  },
+  {
+    "source_id": "HK-D-407-MSSS-HKID-GUIDE",
+    "name": "MSSS 香港身份证申领指南",
+    "source_level": "D",
+    "source_type": "student_experience",
+    "owner": "HKUST Mainland Students and Scholars Society",
+    "url": "https://mp.weixin.qq.com/s/g6geI8bwgp6PFk4GS_X5UA",
+    "task_tags": [
+      "hkid",
+      "student_experience",
+      "appointment"
+    ],
+    "user_group_tags": [
+      "mainland_student",
+      "non_local_student"
+    ],
+    "answer_allowed": false,
+    "last_verified_at": "2026-07-27",
+    "final_decision_maker": "Immigration Department",
+    "boundary_note": "学生经验指南，仅用于提醒预约、预填表格、办事处选择和领取安排；不能替代入境处 / GovHK 官方要求。"
   }
 ]
