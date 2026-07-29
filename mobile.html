@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>港话通 · 移动端演示</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif;
+        --bg: #0c1110;
+        --panel: #111916;
+        --line: rgba(191, 232, 186, 0.18);
+        --green: #76d36f;
+        --text: #f5fff2;
+        --muted: #b8c9b5;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 18% 18%, rgba(118, 211, 111, 0.14), transparent 30%),
+          radial-gradient(circle at 82% 78%, rgba(255, 105, 0, 0.12), transparent 34%),
+          linear-gradient(135deg, #07100d, var(--bg) 58%, #15110d);
+      }
+
+      .stage {
+        width: min(1180px, calc(100vw - 36px));
+        min-height: min(680px, calc(100vh - 36px));
+        display: grid;
+        place-items: center;
+      }
+
+      .caption {
+        display: none;
+        max-width: 500px;
+      }
+
+      .caption small {
+        color: var(--green);
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: 0;
+      }
+
+      .caption h1 {
+        margin: 18px 0 18px;
+        font-size: clamp(42px, 5vw, 64px);
+        line-height: 1.08;
+      }
+
+      .caption p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 24px;
+        line-height: 1.55;
+      }
+
+      .phone {
+        width: min(390px, calc(100vw - 40px));
+        aspect-ratio: 390 / 844;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 42px;
+        background: linear-gradient(180deg, #202823, #070908);
+        box-shadow:
+          0 38px 120px rgba(0, 0, 0, 0.48),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+      }
+
+      .screen {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        border-radius: 30px;
+        background: #fbfaf5;
+      }
+
+      .screen::before {
+        content: "";
+        position: absolute;
+        z-index: 2;
+        top: 8px;
+        left: 50%;
+        width: 108px;
+        height: 26px;
+        transform: translateX(-50%);
+        border-radius: 0 0 18px 18px;
+        background: #101412;
+        pointer-events: none;
+      }
+
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: #fbfaf5;
+      }
+
+      .screen-status {
+        position: absolute;
+        z-index: 3;
+        inset: 54px 18px 18px;
+        display: grid;
+        align-content: center;
+        gap: 12px;
+        padding: 20px;
+        color: #17331c;
+        background: #fbfaf5;
+        text-align: center;
+      }
+
+      .screen-status strong {
+        color: #0a7a28;
+        font-size: 22px;
+      }
+
+      .screen-status p {
+        margin: 0;
+        color: #5b665c;
+        font-size: 15px;
+        line-height: 1.6;
+      }
+
+      .screen-status code {
+        display: block;
+        margin-top: 4px;
+        padding: 8px;
+        border-radius: 10px;
+        background: #eef8e9;
+        color: #0b5324;
+        white-space: normal;
+        word-break: break-all;
+      }
+
+      .screen.loaded .screen-status {
+        display: none;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 30px;
+      }
+
+      .actions a,
+      .actions button {
+        min-height: 42px;
+        padding: 9px 14px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.06);
+        font: inherit;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      @media (max-width: 860px) {
+        body {
+          overflow: auto;
+        }
+
+        .stage {
+          min-height: auto;
+          padding: 24px 0;
+          grid-template-columns: 1fr;
+          justify-items: center;
+        }
+
+        .caption {
+          display: none;
+        }
+      }
+
+      @media (max-height: 760px) and (min-width: 861px) {
+        .phone {
+          width: min(340px, calc(100vh * 0.43));
+        }
+
+        .caption h1 {
+          font-size: 48px;
+        }
+
+        .caption p {
+          font-size: 21px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage">
+      <section class="caption" aria-label="演示说明">
+        <small>港话通 · 新来港，不孤单</small>
+        <h1>用手机视角演示第一月任务导航</h1>
+        <p>电脑打开也只呈现移动端产品界面，适合投屏、录屏和现场路演。</p>
+        <div class="actions">
+          <button type="button" id="restart">重置演示</button>
+          <a href="./index.html" target="_blank" rel="noreferrer">打开网页端</a>
+        </div>
+      </section>
+      <section class="phone" aria-label="移动端演示手机外框">
+        <div class="screen" id="screen">
+          <iframe id="demoFrame" title="港话通移动端Demo"></iframe>
+          <div class="screen-status" id="screenStatus" role="status">
+            <strong>正在载入港话通</strong>
+            <p>如果一直停在这里，请用本地服务或 GitHub Pages 打开移动端演示。</p>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script>
+      const frame = document.querySelector("#demoFrame");
+      const screen = document.querySelector("#screen");
+      const status = document.querySelector("#screenStatus");
+      const isLocalFile = window.location.protocol === "file:";
+      const demoBase = isLocalFile
+        ? "http://localhost:5173/index.html?present=mobile"
+        : "./index.html?present=mobile";
+
+      function setStatus(title, body, code) {
+        status.innerHTML = [
+          `<strong>${title}</strong>`,
+          `<p>${body}${code ? `<code>${code}</code>` : ""}</p>`
+        ].join("");
+      }
+
+      function loadDemo(extra = "") {
+        screen.classList.remove("loaded");
+        setStatus(
+          "正在载入港话通",
+          isLocalFile
+            ? "检测到你可能是直接打开本地文件，正在尝试连接本地 Demo 服务。"
+            : "正在载入移动端 Demo。"
+        );
+        frame.src = demoBase + extra;
+      }
+
+      function checkFrameReady() {
+        try {
+          const doc = frame.contentDocument;
+          if (doc?.querySelector(".app-shell")) {
+            screen.classList.add("loaded");
+            return true;
+          }
+        } catch {
+          return false;
+        }
+        return false;
+      }
+
+      frame.addEventListener("load", () => {
+        window.setTimeout(() => {
+          if (checkFrameReady()) return;
+          setStatus(
+            "Demo 没有加载出来",
+            isLocalFile
+              ? "请不要双击本地文件。先在项目目录运行 npm run dev，然后打开："
+              : "请刷新页面；如果仍为空白，请打开网页端确认 GitHub Pages 是否已部署最新文件。",
+            isLocalFile ? "http://localhost:5173/mobile.html" : "./index.html"
+          );
+        }, 700);
+      });
+
+      window.setTimeout(() => {
+        if (checkFrameReady()) return;
+        setStatus(
+          "Demo 仍在等待",
+          isLocalFile
+            ? "本地文件模式不能稳定运行模块脚本。请使用本地服务地址："
+            : "如果网络较慢，请稍等；若持续空白，请刷新页面。",
+          isLocalFile ? "http://localhost:5173/mobile.html" : ""
+        );
+      }, 2600);
+
+      document.querySelector("#restart").addEventListener("click", () => {
+        loadDemo("&restart=" + Date.now());
+      });
+      loadDemo();
+    </script>
+  </body>
+</html>
