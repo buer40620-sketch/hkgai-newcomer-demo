@@ -1501,23 +1501,89 @@ body {
   font-weight: 900;
 }
 
-.route-strip,
 .stats {
   justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
 }
 
-.route-strip span,
 .stats span {
-  border-color: #cfe7c6;
-  background: rgba(255,255,255,0.8);
+  border: 0;
+  border-left: 3px solid #b8dfad;
+  background: rgba(244, 252, 240, 0.82);
   color: var(--green);
-  border-radius: 999px;
+  border-radius: 8px;
+  padding: 9px 10px;
+  text-align: left;
 }
 
-.route-strip .deep-step {
+.route-timeline {
+  display: grid;
+  gap: 0;
+  max-width: 560px;
+  margin: 22px auto 0;
+  text-align: left;
+}
+
+.route-timeline-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 12px;
+  padding: 0 0 18px;
+  color: var(--green);
+}
+
+.route-timeline-item::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 20px;
+  bottom: -2px;
+  width: 2px;
+  background: #cfe7c6;
+}
+
+.route-timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.route-timeline-item:last-child::before {
+  display: none;
+}
+
+.route-timeline-item > span {
+  position: relative;
+  z-index: 1;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #9fd89a;
+  border-radius: 50%;
+  background: #fffefa;
+  box-shadow: 0 0 0 4px #f5fbef;
+}
+
+.route-timeline-item strong {
+  display: block;
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.route-timeline-item small {
+  display: block;
+  margin-top: 4px;
+  color: #60766a;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.route-timeline-item.deep-step > span {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 4px #fff4e3;
+}
+
+.route-timeline-item.deep-step strong {
   color: var(--orange);
-  border-color: #ffc180;
-  background: #fff8ef;
 }
 
 .task-map {
@@ -1614,11 +1680,14 @@ body {
 }
 
 .timeline-node small {
-  display: block;
-  max-height: 48px;
+  display: -webkit-box;
+  max-height: none;
   overflow: hidden;
   color: #737b75;
   line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
 }
 
 .timeline-node.deep-node {
@@ -1693,6 +1762,7 @@ body {
   .roadmap-head {
     padding-top: 56px;
   }
+
 
   .back-pill {
     left: 0;
@@ -2431,6 +2501,33 @@ body {
   display: block;
   margin-bottom: 4px;
   color: #9a6a00;
+}
+
+.audio-reference-line {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f4f7ff;
+  color: #3d4b72;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.audio-reference-line b {
+  color: #2f56b3;
+}
+
+.audio-reference-line a {
+  color: #245fd6;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.audio-reference-line span {
+  color: #5f6b86;
+  font-weight: 600;
 }
 
 .task-insight-card {

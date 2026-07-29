@@ -63,7 +63,7 @@ const languageLabels = {
     mapHint: "点击任意任务查看详细指引；“住处与材料”会进入深水追问。",
     routeFallbackDeep: "住处与材料仍是共用深水区",
     personas: { "内地来港读研学生": "内地来港读研学生", "新移民 / 来港家庭": "新移民 / 来港家庭", "高才通 / 专才": "高才通 / 专才", "我帮家人办理": "我帮家人办理" },
-    stages: { "抵港前": "抵港前", "刚抵港": "刚抵港", "抵港第一周": "抵港第一周", "第一月": "第一月", "到港前": "到港前", "抵港第一个月": "抵港第一个月", "抵港准备": "抵港准备", "安顿第一周": "安顿第一周", "第一个月": "第一个月", "马上补做": "马上补做", "本周处理": "本周处理", "本月跟进": "本月跟进", "本周补齐": "本周补齐", "后续确认": "后续确认", "当前补齐": "当前补齐", "重点确认": "重点确认", "后续维护": "后续维护", "住处与材料重点深挖": "住处与材料重点深挖", "住处与材料仍是共用深水区": "住处与材料仍是共用深水区" }
+    stages: { "抵港前": "抵港前", "刚抵港": "刚抵港", "抵港第一周": "抵港第一周", "第一月": "第一月", "到港前": "到港前", "抵港第一个月": "抵港第一个月", "抵港准备": "抵港准备", "安顿第一周": "安顿第一周", "第一个月": "第一个月", "马上补做": "马上补做", "本周处理": "本周处理", "本月跟进": "本月跟进", "本周补齐": "本周补齐", "后续确认": "后续确认", "当前补齐": "当前补齐", "重点确认": "重点确认", "后续维护": "后续维护", "住处与材料重点深挖": "住处与材料重点深挖", "住处与材料仍是共用深水区": "住处与材料仍是共用深水区", "重点深挖": "重点深挖", "共用深水区": "共用深水区" }
   },
   "zh-HK": {
     code: "繁",
@@ -86,7 +86,7 @@ const languageLabels = {
     mapHint: "點擊任意任務查看詳細指引；「住處與材料」會進入深水追問。",
     routeFallbackDeep: "住處與材料仍是共用深水區",
     personas: { "内地来港读研学生": "內地來港讀研學生", "新移民 / 来港家庭": "新移民 / 來港家庭", "高才通 / 专才": "高才通 / 專才", "我帮家人办理": "我幫家人辦理" },
-    stages: { "抵港前": "抵港前", "刚抵港": "剛抵港", "抵港第一周": "抵港第一週", "第一月": "第一月", "到港前": "到港前", "抵港第一个月": "抵港第一個月", "抵港准备": "抵港準備", "安顿第一周": "安頓第一週", "第一个月": "第一個月", "马上补做": "即時補做", "本周处理": "本週處理", "本月跟进": "本月跟進", "本周补齐": "本週補齊", "后续确认": "後續確認", "当前补齐": "當前補齊", "重点确认": "重點確認", "后续维护": "後續維護", "住处与材料重点深挖": "住處與材料重點深挖", "住处与材料仍是共用深水区": "住處與材料仍是共用深水區" }
+    stages: { "抵港前": "抵港前", "刚抵港": "剛抵港", "抵港第一周": "抵港第一週", "第一月": "第一月", "到港前": "到港前", "抵港第一个月": "抵港第一個月", "抵港准备": "抵港準備", "安顿第一周": "安頓第一週", "第一个月": "第一個月", "马上补做": "即時補做", "本周处理": "本週處理", "本月跟进": "本月跟進", "本周补齐": "本週補齊", "后续确认": "後續確認", "当前补齐": "當前補齊", "重点确认": "重點確認", "后续维护": "後續維護", "住处与材料重点深挖": "住處與材料重點深挖", "住处与材料仍是共用深水区": "住處與材料仍是共用深水區", "重点深挖": "重點深挖", "共用深水区": "共用深水區" }
   },
   en: {
     code: "EN",
@@ -109,7 +109,7 @@ const languageLabels = {
     mapHint: "Tap any task for details. Housing and documents remains the deeper check.",
     routeFallbackDeep: "Housing and documents stays as the shared deep-dive",
     personas: { "内地来港读研学生": "Mainland postgraduate student", "新移民 / 来港家庭": "New migrant / arriving family", "高才通 / 专才": "Top Talent / professional", "我帮家人办理": "Planning for family" },
-    stages: { "抵港前": "Before arrival", "刚抵港": "Just arrived", "抵港第一周": "First week", "第一月": "First month", "到港前": "Before arrival", "抵港第一个月": "First month", "抵港准备": "Arrival prep", "安顿第一周": "Settling first week", "第一个月": "First month", "马上补做": "Do now", "本周处理": "This week", "本月跟进": "This month", "本周补齐": "Catch up this week", "后续确认": "Confirm later", "当前补齐": "Catch up now", "重点确认": "Key checks", "后续维护": "Keep updated", "住处与材料重点深挖": "Housing and documents deep-dive", "住处与材料仍是共用深水区": "Housing and documents shared deep-dive" }
+    stages: { "抵港前": "Before arrival", "刚抵港": "Just arrived", "抵港第一周": "First week", "第一月": "First month", "到港前": "Before arrival", "抵港第一个月": "First month", "抵港准备": "Arrival prep", "安顿第一周": "Settling first week", "第一个月": "First month", "马上补做": "Do now", "本周处理": "This week", "本月跟进": "This month", "本周补齐": "Catch up this week", "后续确认": "Confirm later", "当前补齐": "Catch up now", "重点确认": "Key checks", "后续维护": "Keep updated", "住处与材料重点深挖": "Housing and documents deep-dive", "住处与材料仍是共用深水区": "Housing and documents shared deep-dive", "重点深挖": "Deep-dive", "共用深水区": "Shared deep-dive" }
   }
 };
 
@@ -145,8 +145,8 @@ const personaConfigs = {
     welcomeTitle: "把到港前和第一周的混乱，整理成第一月路线图",
     input: "我是内地来港读研学生，8 月底到香港，还没租房，也没办香港电话卡。到港前和第一周应该先做什么？",
     roadmapIntro: "当前主线：先按到港前 / 第一周 / 第一个月生成任务路线图，再进入“住处与材料”深水区。",
-    stats: ["8 个任务", "3 个时间段", "住处与材料做深", "本地 mock 可跑"],
-    routeLabels: ["到港前", "抵港第一周", "抵港第一个月", "住处与材料重点深挖"],
+    stats: ["任务池：8 个", "时间线：3 段", "深挖对象：住处与材料", "演示方式：本地 mock"],
+    routeLabels: ["到港前", "抵港第一周", "抵港第一个月", "重点深挖"],
     timeline: [
       ["pre_arrival", "到港前", "先保通信、证件材料、临时住宿和交通支付。"],
       ["first_week", "抵港第一周", "处理长期联系方式、学校报到、住处与材料、HKID 预约和租房风险。"],
@@ -170,7 +170,7 @@ const personaConfigs = {
     input: "我们一家刚来香港，暂时住在亲友家，还不清楚社区服务、医疗入口、孩子和家庭相关事项应该先问哪里。第一个月应该怎么安排？",
     roadmapIntro: "当前主线：先按到港前 / 第一周 / 第一个月整理家庭安顿任务，再用可信来源和人工兜底避免误判资格。",
     stats: ["8 个任务", "家庭安顿视角", "社区/医疗/政府入口", "不判断资格"],
-    routeLabels: ["抵港准备", "安顿第一周", "第一个月", "住处与材料仍是共用深水区"],
+    routeLabels: ["抵港准备", "安顿第一周", "第一个月", "共用深水区"],
     timeline: [
       ["pre_arrival", "抵港准备", "先整理证件材料、临时住处、通信方式和交通支付。"],
       ["first_week", "安顿第一周", "确认住处、政府查询入口、医疗紧急入口和家庭服务支持。"],
@@ -204,28 +204,28 @@ const personaConfigs = {
 
 const stageSemantics = {
   "抵港前": {
-    routeLabels: ["到港前", "抵港第一周", "抵港第一个月", "住处与材料重点深挖"],
+    routeLabels: ["到港前", "抵港第一周", "抵港第一个月", "重点深挖"],
     timelineTitles: ["到港前", "抵港第一周", "抵港第一个月"],
     timelineTone: "prepare",
     introPrefix: "先按到港前 / 第一周 / 第一个月生成任务路线图",
     queryAction: "到港前和第一周应该先做什么"
   },
   "刚抵港": {
-    routeLabels: ["马上补做", "本周处理", "本月跟进", "住处与材料重点深挖"],
+    routeLabels: ["马上补做", "本周处理", "本月跟进", "重点深挖"],
     timelineTitles: ["马上补做", "本周处理", "本月跟进"],
     timelineTone: "catchup",
     introPrefix: "先把可能漏掉的前置事项列为马上补做，再安排本周处理和本月跟进",
     queryAction: "现在应该马上补做什么，本周优先处理什么"
   },
   "抵港第一周": {
-    routeLabels: ["本周补齐", "本月跟进", "后续确认", "住处与材料重点深挖"],
+    routeLabels: ["本周补齐", "本月跟进", "后续确认", "重点深挖"],
     timelineTitles: ["本周补齐", "本月跟进", "后续确认"],
     timelineTone: "week",
     introPrefix: "先补齐本周仍可能卡住的前置事项，再安排本月跟进和后续确认",
     queryAction: "这一周还应该补齐什么，本月要跟进什么"
   },
   "第一月": {
-    routeLabels: ["当前补齐", "重点确认", "后续维护", "住处与材料重点深挖"],
+    routeLabels: ["当前补齐", "重点确认", "后续维护", "重点深挖"],
     timelineTitles: ["当前补齐", "重点确认", "后续维护"],
     timelineTone: "month",
     introPrefix: "先补齐当前仍缺的基础事项，再集中确认住处、材料和公共服务入口",
@@ -499,7 +499,7 @@ function currentTimeline() {
 function currentRouteLabels() {
   const labelsForStage = currentStageSemantics().routeLabels;
   return isFamilyPersona()
-    ? labelsForStage.map((item) => (item === "住处与材料重点深挖" ? "住处与材料仍是共用深水区" : item))
+    ? labelsForStage.map((item) => (["住处与材料重点深挖", "重点深挖"].includes(item) ? "共用深水区" : item))
     : labelsForStage;
 }
 
@@ -758,6 +758,7 @@ function describeSourceType(type) {
     institution_pending: "目标机构确认入口待补",
     student_experience: "学生经验来源",
     media_test: "媒体实测样例",
+    pronunciation_reference: "粤语朗读参考",
     transport_tool: "官方交通工具",
     weather_tool: "官方天气工具",
     payment_tool: "支付服务入口",
@@ -1211,8 +1212,18 @@ function renderRoadmap() {
       <div class="stats">
         ${persona.stats.map((item) => `<span>${item}</span>`).join("")}
       </div>
-      <div class="route-strip">
-        ${routeLabels.map((item, index) => `<span class="${index === routeLabels.length - 1 ? "deep-step" : ""}">${ts(item)}</span>`).join("")}
+      <div class="route-timeline" aria-label="第一月路线概览">
+        ${routeLabels
+          .map((item, index) => {
+            const descriptions = [
+              "先保通信、证件材料、临时住宿和交通支付。",
+              "处理学校报到、住处材料、HKID 和租房风险。",
+              "跟进银行、医疗、社区和后续账户确认。",
+              "住址和材料会影响学校记录、银行、政府服务和后续证明。"
+            ];
+            return `<div class="route-timeline-item ${index === routeLabels.length - 1 ? "deep-step" : ""}"><span></span><div><strong>${ts(item)}</strong><small>${descriptions[index]}</small></div></div>`;
+          })
+          .join("")}
       </div>
     </section>
     ${renderReorderInsight()}
@@ -1451,6 +1462,7 @@ function renderLocalPhraseCard(task) {
               <span>${item.meaning}</span>
               ${item.jyutping ? `<p class="jyutping-line"><b>粤拼参考</b>${item.jyutping}</p>` : ""}
               ${item.pronunciation_hint ? `<p class="pronunciation-line"><b>近似读法</b>${item.pronunciation_hint}</p>` : ""}
+              ${item.audio_reference_url ? `<p class="audio-reference-line"><b>${item.audio_reference_label || "粤语播放参考"}</b><a href="${item.audio_reference_url}" target="_blank" rel="noreferrer">${item.audio_reference_url}</a><span>${item.audio_reference_note || "外部网页只作发音参考。"}</span></p>` : ""}
               <small>${item.scene} · ${item.note}</small>
             </div>
           `
