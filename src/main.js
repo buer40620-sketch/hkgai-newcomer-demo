@@ -1,4 +1,4 @@
-import { enhanceProfileInput, polishConsultationQuestions, queryTravelToolhub } from "./apiClient.js";
+﻿import { enhanceProfileInput, polishConsultationQuestions, queryAgenthubSourceCheck, queryTravelToolhub, synthesizeCantoneseSpeech } from "./apiClient.js";
 
 const app = document.querySelector("#app");
 
@@ -36,6 +36,9 @@ const state = {
     lastProfileRun: null,
     lastQuestionRun: null,
     lastToolRun: null,
+    lastVoiceRun: null,
+    voiceLoadingKey: null,
+    lastAgentRun: null,
     polishedQuestions: null
   }
 };
@@ -48,10 +51,14 @@ const languageLabels = {
     welcomeEyebrow: "P0 欢迎 / 身份选择",
     welcomeTitle: "一步一步来，<br />香港生活从这里开始",
     start: "开始规划",
-    helper: "不知道自己该问什么？直接点开始也可以",
-    aiParse: "模拟 HKGAI 解析",
+    helper: "不知道怎么填？可以先选下面的选项，再用一句话补充。",
+    aiParse: "智能解析我的情况",
+    analyzeFirst: "用补充说明更新选项",
+    planFromAnalysis: "生成我的路线",
+    skipAnalysis: "生成我的路线",
+    reAnalyze: "重新更新选项",
     parsing: "解析中...",
-    voiceTitle: "模拟语音输入，不调用真实录音",
+    voiceTitle: "点一下填入语音提问示例",
     voice: "语",
     personaQuestion: "你是哪类来港情况？",
     stageQuestion: "你现在到哪一步？",
@@ -71,10 +78,14 @@ const languageLabels = {
     welcomeEyebrow: "P0 歡迎 / 身份選擇",
     welcomeTitle: "一步一步來，<br />香港生活從這裡開始",
     start: "開始規劃",
-    helper: "不知道自己該問甚麼？直接點開始也可以",
-    aiParse: "模擬 HKGAI 解析",
+    helper: "不知道怎樣填？可以先選下面的選項，再用一句話補充。",
+    aiParse: "智能整理我的情況",
+    analyzeFirst: "用補充說明更新選項",
+    planFromAnalysis: "生成我的路線",
+    skipAnalysis: "生成我的路線",
+    reAnalyze: "重新更新选项",
     parsing: "解析中...",
-    voiceTitle: "模擬語音輸入，不調用真實錄音",
+    voiceTitle: "點一下填入語音提問示例",
     voice: "語",
     personaQuestion: "你是哪類來港情況？",
     stageQuestion: "你現在到哪一步？",
@@ -94,10 +105,14 @@ const languageLabels = {
     welcomeEyebrow: "P0 Welcome / Profile",
     welcomeTitle: "Step by step,<br />start your Hong Kong life here",
     start: "Start planning",
-    helper: "Not sure what to ask? Start directly.",
-    aiParse: "Simulate HKGAI parsing",
+    helper: "Not sure what to type? Choose options first, then add one note.",
+    aiParse: "Understand my situation",
+    analyzeFirst: "Update options from note",
+    planFromAnalysis: "Generate my route",
+    skipAnalysis: "Generate my route",
+    reAnalyze: "Update options again",
     parsing: "Parsing...",
-    voiceTitle: "Simulated voice input, no real recording",
+    voiceTitle: "Fill a voice-question example",
     voice: "Voice",
     personaQuestion: "Who are you planning for?",
     stageQuestion: "Where are you now?",
@@ -333,7 +348,7 @@ const personaTaskOverlays = {
     },
     transport_payment_001: {
       summary: "先解决机场到临时住处或亲友家的路线、日常交通支付和天气预警。交通和天气属于低风险工具增强，最终以官方应用和实时公告为准。",
-      next_steps: ["保存机场到临时住处或亲友家的路线", "准备八达通或移动支付方案", "出发前查看天气警告和交通服务状态", "把实时路线和天气留作 ToolHub 增强位"],
+      next_steps: ["保存机场到临时住处或亲友家的路线", "准备八达通或移动支付方案", "出发前查看天气警告和交通服务状态", "出发前查看实时路线和天气"],
       fallback_channels: ["HKeMobility", "香港天文台", "八达通官方入口"]
     },
     rental_scam_001: {
@@ -586,7 +601,7 @@ function tasksForCurrentPersona() {
   return state.tasks.map(displayTask);
 }
 
-const prepTaskIds = ["telecom_001", "entry_documents_001", "transport_payment_001"];
+const prepTaskIds = ["telecom_001", "entry_documents_001", "transport_payment_001", "housing_materials_001"];
 
 function shouldShowPrepCompletion() {
   return state.profile.arrival_stage !== "抵港前";
@@ -601,19 +616,16 @@ function isPrepTaskCompleted(taskId) {
 }
 
 function missingPrepTasks() {
-  if (!shouldShowPrepCompletion()) return prepTaskItems();
   return prepTaskItems().filter((task) => !isPrepTaskCompleted(task.task_id));
 }
 
 function completedPrepTasks() {
-  if (!shouldShowPrepCompletion()) return [];
   return prepTaskItems().filter((task) => isPrepTaskCompleted(task.task_id));
 }
 
 function tasksForTimelineStage(stage) {
-  const tasks = tasksForCurrentPersona().filter((task) => task.stage === stage);
-  if (stage !== "pre_arrival" || !shouldShowPrepCompletion()) return tasks;
-  return tasks.filter((task) => !isPrepTaskCompleted(task.task_id));
+  const completedPrepIds = new Set(state.completedPrepTaskIds || []);
+  return tasksForCurrentPersona().filter((task) => task.stage === stage && !completedPrepIds.has(task.task_id));
 }
 
 function focusBadges() {
@@ -711,7 +723,7 @@ function isSelectedDeepTask() {
 }
 
 function setPage(page) {
-  const targetPage = !isSelectedDeepTask() && ["P3", "P5"].includes(page) ? "P2" : page;
+  const targetPage = !isSelectedDeepTask() && page === "P3" ? "P2" : page;
   if (targetPage !== state.page) state.previousPage = state.page;
   state.page = targetPage;
   state.copied = false;
@@ -818,6 +830,9 @@ function openTask(taskId) {
   state.selectedTaskId = taskId;
   state.selectedSourceIds = [];
   state.api.lastToolRun = null;
+  state.api.lastAgentRun = null;
+  state.api.polishedQuestions = null;
+  state.api.lastQuestionRun = null;
   setPage("P2");
 }
 
@@ -892,7 +907,7 @@ function renderDemoNav() {
     <nav class="stepper" aria-label="Demo flow">
       ${["P0", "P1", "P2", "P3", "P4", "P5"]
         .map((page) => {
-          const disabled = !isSelectedDeepTask() && ["P3", "P5"].includes(page);
+          const disabled = !isSelectedDeepTask() && page === "P3";
           const hint = disabled ? `<small class="step-sub">住处专用</small>` : "";
           return `<button type="button" class="step ${state.page === page ? "active" : ""}" data-page="${page}" ${disabled ? "disabled title=\"仅住处与材料深水任务可进入\"" : ""}><span>${page}</span>${hint}</button>`;
         })
@@ -917,23 +932,14 @@ function renderShell(content) {
 function renderWelcome() {
   const profileOptions = ["内地来港读研学生", "新移民 / 来港家庭", "高才通 / 专才", "我帮家人办理"];
   return `
-    <section class="hero-panel">
+    <section class="hero-panel option-first-welcome">
       <div class="hero-copy">
         <p class="eyebrow">${t("welcomeEyebrow")}</p>
         <h1>${t("welcomeTitle")}</h1>
       </div>
-      <div class="planning-card">
-        <div class="input-wrap">
-          <textarea id="profileInput">${state.profile.input}</textarea>
-          <button class="voice-placeholder" title="${t("voiceTitle")}" data-action="simulate-voice" type="button">${t("voice")}</button>
-        </div>
-        <button class="primary hero-cta" data-action="go-roadmap">${t("start")}</button>
-        <p class="helper-text">${t("helper")}</p>
-        <button class="secondary small ai-subtle" data-action="enhance-profile">${state.api.isLoading ? t("parsing") : t("aiParse")}</button>
-      </div>
-      <div class="visible-setup" aria-label="身份和阶段选择">
+      <div class="visible-setup" aria-label="身份、阶段和完成情况选择">
         <div class="setup-group">
-          <p class="setup-label">${t("personaQuestion")}</p>
+          <p class="setup-label">1. ${t("personaQuestion")}</p>
           <div class="choice-row" aria-label="用户身份">
             ${profileOptions
               .map((item) => `<button type="button" class="chip ${item === state.profile.user_group ? "selected" : ""}" data-profile="${item}">${tp(item)}</button>`)
@@ -941,7 +947,7 @@ function renderWelcome() {
           </div>
         </div>
         <div class="setup-group">
-          <p class="setup-label">${t("stageQuestion")}</p>
+          <p class="setup-label">2. ${t("stageQuestion")}</p>
           <div class="choice-row" aria-label="抵港阶段">
             ${["抵港前", "刚抵港", "抵港第一周", "第一月"]
               .map((item) => `<button type="button" class="chip ${item === state.profile.arrival_stage ? "selected" : ""}" data-stage="${item}">${ts(item)}</button>`)
@@ -950,18 +956,29 @@ function renderWelcome() {
         </div>
         ${renderPrepCompletionSetup()}
       </div>
-      ${renderApiStatus("profile")}
+      <div class="planning-card supplement-card">
+        <div class="supplement-head">
+          <strong>还有什么想补充？</strong>
+          <span>可输入一句话，也可以点语音快速填入。</span>
+        </div>
+        <div class="input-wrap compact-input-wrap">
+          <textarea id="profileInput">${state.profile.input}</textarea>
+          <button class="voice-placeholder" title="${t("voiceTitle")}" data-action="simulate-voice" type="button">${t("voice")}</button>
+        </div>
+        ${renderProfileAssistHint()}
+        <button class="secondary small ai-subtle" data-action="enhance-profile">${state.api.isLoading ? t("parsing") : t("analyzeFirst")}</button>
+        <button class="primary hero-cta" data-action="go-roadmap">${t("planFromAnalysis")}</button>
+        <p class="helper-text">${t("helper")}</p>
+      </div>
       <p class="hero-footnote">${t("footer")}</p>
     </section>
   `;
 }
 
 function renderPrepCompletionSetup() {
-  if (!shouldShowPrepCompletion()) return "";
-  const label = state.profile.arrival_stage === "刚抵港" ? "你已经完成哪些前置事项？" : "这些前置事项哪些已经完成？";
   return `
     <div class="setup-group prep-completion-setup" aria-label="前置事项完成情况">
-      <p class="setup-label">${label}</p>
+      <p class="setup-label">3. 哪些已经完成？</p>
       <div class="prep-check-row">
         ${prepTaskItems()
           .map(
@@ -974,15 +991,26 @@ function renderPrepCompletionSetup() {
           )
           .join("")}
       </div>
-      <small>未勾选会进入 P1 的“马上补做 / 本周补齐”，已勾选会降到后续维护。</small>
+      <small>已完成的任务会在路线图中降权或进入“已完成 / 后续维护”。</small>
+    </div>
+  `;
+}
+
+function renderProfileAssistHint() {
+  const run = state.api.lastProfileRun;
+  if (!run?.inferred) return "";
+  const missing = missingPrepTasks().map((task) => task.title).slice(0, 3).join("、") || "暂无前置漏项";
+  return `
+    <div class="profile-assist-hint">
+      已根据补充说明更新选项：${tp(state.profile.user_group)}，${ts(state.profile.arrival_stage)}；待处理：${missing}。
     </div>
   `;
 }
 
 function renderPrepRerankPanel() {
-  if (!shouldShowPrepCompletion()) return "";
   const missing = missingPrepTasks();
   const done = completedPrepTasks();
+  if (!shouldShowPrepCompletion() && !done.length) return "";
   return `
     <section class="prep-rerank-panel" aria-label="前置漏项补排结果">
       <p class="eyebrow">系统已按当前位置补排</p>
@@ -1462,6 +1490,7 @@ function renderLocalPhraseCard(task) {
               <span>${item.meaning}</span>
               ${item.jyutping ? `<p class="jyutping-line"><b>粤拼参考</b>${item.jyutping}</p>` : ""}
               ${item.pronunciation_hint ? `<p class="pronunciation-line"><b>近似读法</b>${item.pronunciation_hint}</p>` : ""}
+                            ${renderVoiceTtsAction(item)}
               ${item.audio_reference_url ? `<p class="audio-reference-line"><b>${item.audio_reference_label || "粤语播放参考"}</b><a href="${item.audio_reference_url}" target="_blank" rel="noreferrer">${item.audio_reference_url}</a><span>${item.audio_reference_note || "外部网页只作发音参考。"}</span></p>` : ""}
               <small>${item.scene} · ${item.note}</small>
             </div>
@@ -1472,6 +1501,21 @@ function renderLocalPhraseCard(task) {
   `;
 }
 
+function renderVoiceTtsAction(item) {
+  if (!item.phrase || !item.jyutping) return "";
+  const key = item.phrase;
+  const run = state.api.lastVoiceRun;
+  const isCurrent = run?.text === key;
+  const loading = state.api.voiceLoadingKey === key;
+  const statusClass = isCurrent && run.used_live_api ? "live" : isCurrent ? "fallback" : "idle";
+  const statusText = isCurrent ? run.reason : "可生成粤语试听；无法播放时仍可看粤拼和外部发音参考。";
+  return `
+    <div class="voice-tts-line ${statusClass}">
+      <button class="ghost small" data-action="speak-phrase" data-phrase="${encodeURIComponent(key)}" type="button">${loading ? "生成中..." : "播放粤语试听"}</button>
+      <span>${statusText}</span>
+    </div>
+  `;
+}
 function renderTaskInsightSections(task) {
   if (!task.insight_sections?.length && !task.source_note) return "";
   return `
@@ -1526,7 +1570,7 @@ function renderTaskModeNotice(task) {
   return `
     <div class="task-mode-note ${isDeep ? "deep-mode" : "light-mode"}">
       <strong>${isDeep ? "深水任务" : "浅层任务"}</strong>
-      <p>${isDeep ? "这类任务需要进入 P3 追问阶段、住处、用途和材料，再到 P4/P5 生成来源与咨询问题。" : "当前任务只需要看 P2 详情和 P4 来源；P3/P5 仅用于“住处与材料”深水追问。"}</p>
+      <p>${isDeep ? "这类任务需要进入 P3 追问阶段、住处、用途和材料，再到 P4/P5 生成来源与咨询问题。" : "当前任务可看 P2 详情、P4 来源和 P5 轻量咨询问题；P3 仍仅用于“住处与材料”深水追问。"}</p>
     </div>
   `;
 }
@@ -1575,7 +1619,7 @@ function renderTaskDetail() {
         ${
           isDeep
             ? '<button class="primary" data-page="P3">进入住处与材料追问</button>'
-            : '<button class="primary" data-page="P1">保存并返回路线图</button>'
+            : '<button class="primary" data-page="P5">生成咨询问题</button><button class="secondary" data-page="P1">保存并返回路线图</button>'
         }
         <button class="secondary" data-open-sources="${task.source_ids.join(",")}">查看可信来源</button>
       </div>
@@ -1727,6 +1771,7 @@ function renderSourceDrawer() {
           <strong>边界提示</strong>
           <span>${isFamilyPersona() ? "港话通用来源来拆步骤和准备问题，不替代政府部门、银行、医疗或社区服务机构的最终审核。家庭场景优先使用官方和服务入口，不展示学校样例。" : "港话通用来源来拆步骤和准备问题，不替代学校、银行、政府部门或专业机构的最终审核。学校链接只作为样例，实际要查用户自己的学校入口。"}</span>
         </div>
+        ${renderAgenthubSourceCheck(task)}
         ${groups
           .map(
             ([title, items]) => `
@@ -1747,6 +1792,28 @@ function renderSourceDrawer() {
   `;
 }
 
+function renderAgenthubSourceCheck(task) {
+  const run = state.api.lastAgentRun;
+  return `
+    <section class="agenthub-card">
+      <p class="eyebrow">来源补充</p>
+      <h2>补充查找相关来源</h2>
+      <p>按当前任务补充查找相关网页线索；最终仍以上方可信来源和目标机构确认为准。</p>
+      ${run ? renderAgenthubRun(run) : `<div class="api-card idle"><strong>可补充查找来源</strong><p>点击后按当前任务查找相关网页线索，帮助你知道还可以去哪里核对。</p></div>`}
+      <button class="secondary small" data-action="run-agenthub">${state.api.isLoading ? "查找中..." : "补充查找相关来源"}</button>
+    </section>
+  `;
+}
+
+function renderAgenthubRun(run) {
+  return `
+    <div class="agenthub-result">
+      <p>${run.summary}</p>
+      ${(run.sources || []).length ? `<div class="agenthub-source-list">${run.sources.map((source) => `<a href="${source.url}" target="_blank" rel="noreferrer">${source.title || source.url}</a>`).join("")}</div>` : ""}
+      <small>${run.boundary || "联网搜索只作为补充线索。"}</small>
+    </div>
+  `;
+}
 function renderSourceReferenceNotes(sources) {
   if (!sources.length) return "";
   return `
@@ -1793,34 +1860,35 @@ function renderSource(source) {
 }
 
 function renderQuestionGenerator() {
+  const task = getTask();
+  const isDeep = task.task_id === "housing_materials_001";
   const questions = buildQuestions();
   const context = buildQuestionContext();
   return `
     <section class="panel">
-      <button class="link-btn" data-page="P3">← 返回住处与材料结果</button>
+      <button class="link-btn" data-page="${isDeep ? "P3" : "P2"}">← 返回${isDeep ? "住处与材料结果" : "任务详情"}</button>
       <p class="eyebrow">P5 咨询问题生成器 / 兜底入口</p>
       <h1>不能替你下结论，但可以帮你问对问题</h1>
-      ${renderQuestionRoutingCard(context)}
+      ${isDeep ? renderQuestionRoutingCard(context) : ""}
       <div class="context-card">
         <h2>当前情境</h2>
         <div class="mini-meta">
+          <span>${task.title}</span>
           <span>${context.phaseText}</span>
           <span>${context.livingText}</span>
           <span>${context.purposeText}</span>
           <span>${context.materialText}</span>
         </div>
-        <p>${isFamilyPersona() ? "建议联系顺序：先问 1823 确认政府入口，再按具体事项联系 IFSC、HAD 新来港服务或目标银行。这里不判断资格，只帮你把问题问清楚。" : "建议联系顺序：先问本校应该找哪个办公室，再按具体用途问政府部门或目标银行。学校样例来源只示范入口类型，不代表系统覆盖所有学校。"}</p>
+        <p>${isDeep ? (isFamilyPersona() ? "建议联系顺序：先问 1823 确认政府入口，再按具体事项联系 IFSC、HAD 新来港服务或目标银行。这里不判断资格，只帮你把问题问清楚。" : "建议联系顺序：先问本校应该找哪个办公室，再按具体用途问政府部门或目标银行。学校样例来源只示范入口类型，不代表系统覆盖所有学校。") : "这是当前任务的轻量咨询问题：只帮你问清楚入口、材料、费用或风险边界，不替机构下结论。"}</p>
       </div>
       ${renderApiStatus("questions")}
       <div class="question-grid">${questions.map(renderQuestion).join("")}</div>
       <div class="fallbacks">
-        ${(isFamilyPersona() ? ["1823 政府查询", "HAD 新来港服务", "IFSC", "目标银行", "18222 防骗咨询", "999 紧急服务", "HA / HA Go"] : ["本校学生事务处", "宿舍办公室 / Registry", "1823 政府查询", "目标银行", "18222 防骗咨询", "999 紧急服务", "NGO / IFSC"])
-          .map((item) => `<span>${item}</span>`)
-          .join("")}
+        ${questionFallbackChannels(task).map((item) => `<span>${item}</span>`).join("")}
       </div>
       <div class="button-row">
-        <button class="secondary" data-action="polish-questions">${state.api.isLoading ? "润色中..." : "模拟 AI 润色问题"}</button>
-        <button class="primary" data-action="complete-loop">保存到任务并回路线图</button>
+        <button class="secondary" data-action="polish-questions">${state.api.isLoading ? "整理中..." : "优化咨询问题"}</button>
+        ${isDeep ? '<button class="primary" data-action="complete-loop">保存到任务并回路线图</button>' : '<button class="primary" data-page="P1">保存并返回路线图</button>'}
         <button class="secondary" data-page="P4">查看来源</button>
       </div>
     </section>
@@ -1840,19 +1908,101 @@ function buildQuestions() {
 }
 
 function buildTemplateQuestions() {
+  const task = getTask();
   const context = buildQuestionContext();
+  if (task.task_id !== "housing_materials_001") return buildTaskQuestionTemplates(task, context);
   const templates = isFamilyPersona() ? familyQuestionTemplates : state.templates;
   return templates
     .slice()
     .sort((a, b) => (a.priority_order || 99) - (b.priority_order || 99))
-    .map((template) => ({
-      ...template,
-      text: template.template_text
-        .replaceAll("【材料列表】", context.materialText)
-        .replaceAll("【居住状态】", context.livingText)
-        .replaceAll("【用途】", context.purposeText)
-        .replaceAll("【抵港阶段】", context.phaseText)
-    }));
+    .map((template) => applyQuestionContext(template, context));
+}
+
+function applyQuestionContext(template, context) {
+  return {
+    ...template,
+    text: template.template_text
+      .replaceAll("【材料列表】", context.materialText)
+      .replaceAll("【居住状态】", context.livingText)
+      .replaceAll("【用途】", context.purposeText)
+      .replaceAll("【抵港阶段】", context.phaseText)
+      .replaceAll("【任务名称】", getTask()?.title || "当前任务")
+  };
+}
+
+function buildTaskQuestionTemplates(task, context) {
+  const channels = questionFallbackChannels(task);
+  const askFirst = channels[0] || "目标机构";
+  const templatesByCategory = {
+    telecom: [
+      {
+        target_label: "便利店 / 电话卡门店 / 运营商客服",
+        why_contact: "电话卡规则、价格、有效期和实名登记会随门店和运营商变化，适合直接向销售或客服确认。",
+        confirm_checklist: ["是否有适合短期使用的储值电话卡", "是否需要实名登记和证件", "有效期、充值方式、数据和通话范围", "能否接收学校、银行或政府验证码"],
+        fallback_channels: channels,
+        template_text: "唔该，我想问下有冇储值电话卡？我刚来香港，主要想先解决短期通信和验证码。请问这张卡是否需要实名登记？有效期、充值方式、数据流量和通话范围是什么？如果后续要接收学校、银行或政府账户验证码，是否适合使用？"
+      },
+      {
+        target_label: "学校 IT / 银行或政府账户客服",
+        why_contact: "通信方案最终要服务于验证码和账户登录，需向实际使用方确认备用方式。",
+        confirm_checklist: ["是否必须使用香港号码", "内地号码漫游是否可接收验证码", "收不到验证码时的替代验证方式"],
+        fallback_channels: channels,
+        template_text: "你好，我刚来香港，目前还在确认香港电话卡。请问贵机构的账户验证码是否必须使用香港手机号码？内地号码开通漫游是否可接收？如果暂时收不到短信验证码，是否有邮箱、人工核验或其他备用方式？"
+      }
+    ],
+    transport: [
+      {
+        target_label: "HKeMobility / 交通运营方 / 学校交通入口",
+        why_contact: "路线、班次和票价是实时信息，适合向官方交通入口复核。",
+        confirm_checklist: ["机场到目的地路线", "预计时间和换乘点", "票价和支付方式", "暑期或天气导致的临时调整"],
+        fallback_channels: channels,
+        template_text: "你好，我准备从机场前往【任务名称】相关目的地。请问当前推荐路线、预计时间、换乘点和票价应以哪个官方入口为准？如果遇到暴雨、台风或暑期班次调整，应该在哪里确认最新安排？"
+      },
+      {
+        target_label: "香港天文台 / 学校或住宿接待方",
+        why_contact: "天气警告会影响抵港日交通和到校安排，需要提前确认替代方案。",
+        confirm_checklist: ["恶劣天气时是否应延后出行", "学校或住处接待是否受影响", "紧急联系入口"],
+        fallback_channels: channels,
+        template_text: "你好，我抵港当天可能需要从机场前往学校或临时住处。若香港天文台发出暴雨、台风或其他天气警告，请问是否会影响接待、入住或报到？如果交通延误，我应该联系哪个入口确认下一步？"
+      }
+    ],
+    bank_medical: [
+      {
+        target_label: "目标银行 / 银行客服",
+        why_contact: "开户材料和地址要求由目标银行确认，AI 不能替银行判断能否开户。",
+        confirm_checklist: ["开户所需身份证明", "地址或住处材料要求", "是否需要香港电话号码", "未持 HKID 时是否需补充文件"],
+        fallback_channels: channels,
+        template_text: "你好，我刚来香港，想确认银行开户材料。当前阶段是【抵港阶段】，住处状态是【居住状态】。请问开户是否需要香港地址资料、香港电话号码或 HKID？如果暂时住酒店、亲友家或还未稳定租房，哪些文件可以作为辅助材料？"
+      },
+      {
+        target_label: "HA / HA Go / 社区或 IFSC 服务入口",
+        why_contact: "医疗和社区服务只能做入口导航，具体资格、费用和处理方式要由官方或服务机构确认。",
+        confirm_checklist: ["非紧急医疗入口", "紧急情况处理", "社区或 NGO 支持入口", "是否需要预约、地址或身份证明"],
+        fallback_channels: channels,
+        template_text: "你好，我刚来香港，想确认医疗和社区服务入口。非紧急医疗问题应先使用哪个官方入口？如果需要社区或家庭支援，应联系 IFSC、HAD 新来港服务还是其他机构？是否需要预约、地址资料或身份证明？紧急情况我会直接联系 999 或急症室。"
+      }
+    ]
+  };
+  const templates = templatesByCategory[task.category] || [
+    {
+      target_label: askFirst,
+      why_contact: "当前任务需要向目标机构确认入口、材料和边界，避免把攻略经验当成规则。",
+      confirm_checklist: ["应该联系哪个入口", "需要准备哪些材料", "哪些情况必须由机构审核", "如果不归该机构处理应转问哪里"],
+      fallback_channels: channels,
+      template_text: "你好，我正在处理【任务名称】。当前阶段是【抵港阶段】，住处状态是【居住状态】。请问这个事项应该先联系哪个入口？需要准备哪些材料或信息？如果这不是贵机构负责，请问应转问哪个部门或服务入口？"
+    }
+  ];
+  return templates.map((template, index) => applyQuestionContext({ priority_order: index + 1, ...template }, context));
+}
+
+function questionFallbackChannels(task = getTask()) {
+  if (task?.fallback_channels?.length) return task.fallback_channels;
+  if (task?.category === "transport") return ["HKeMobility", "香港天文台", "八达通官方入口"];
+  if (task?.category === "telecom") return ["运营商客服", "OFCA", "学校 IT Helpdesk"];
+  if (task?.category === "bank_medical") return ["目标银行", "HA / HA Go", "IFSC", "HAD 新来港服务"];
+  return isFamilyPersona()
+    ? ["1823 政府查询", "HAD 新来港服务", "IFSC", "目标银行", "999 紧急服务"]
+    : ["本校学生事务处", "1823 政府查询", "目标银行", "18222 防骗咨询", "999 紧急服务"];
 }
 
 function isToolhubTransportTask(task) {
@@ -1864,11 +2014,11 @@ function renderToolhubEnhancement(task) {
   const run = state.api.lastToolRun;
   return `
     <section class="toolhub-card">
-      <p class="eyebrow">9.8 ToolHub 增强位：交通 / 天气</p>
-      <h2>低风险工具题，适合接实时工具，但不影响主线</h2>
-      <p>未来可以接交通路线、票价、天气警告等工具；当前没有后端凭证时，只展示官方入口和本地 fallback。</p>
+      <p class="eyebrow">交通 / 天气</p>
+      <h2>查看交通和天气提醒</h2>
+      <p>出发前先看路线、天气和支付提醒；临场安排仍以官方入口为准。</p>
       ${run ? renderToolhubRun(run) : renderToolhubIdle()}
-      <button class="secondary small" data-action="run-toolhub">${state.api.isLoading ? "查询中..." : "模拟 ToolHub 查询"}</button>
+      <button class="secondary small" data-action="run-toolhub">${state.api.isLoading ? "查询中..." : "查看交通和天气提醒"}</button>
     </section>
   `;
 }
@@ -1876,9 +2026,9 @@ function renderToolhubEnhancement(task) {
 function renderToolhubIdle() {
   return `
     <div class="api-card idle toolhub-idle">
-      <strong>ToolHub 待接入</strong>
-      <p>交通和天气属于工具增强，不决定资格和材料可用性。没有实时工具时，路线图仍可继续。</p>
-      <span>状态：等待调用 · fallback ready</span>
+      <strong>可查看交通和天气提醒</strong>
+      <p>用于查看路线、天气和支付提醒；材料和资格问题仍按对应机构确认为准。</p>
+      
     </div>
   `;
 }
@@ -1887,15 +2037,7 @@ function renderToolhubRun(run) {
   const snapshot = run.snapshot || {};
   return `
     <div class="toolhub-result">
-      <div class="mini-meta">
-        <span>mode: ${run.mode}</span>
-        <span>provider: ${run.provider}</span>
-        <span>live_api: ${run.used_live_api ? "true" : "false"}</span>
-      </div>
       ${renderApiFallbackPanel(run)}
-      <div class="toolhub-call-list">
-        ${(run.toolhub_calls || []).map((item) => `<span>${item}</span>`).join("")}
-      </div>
       <div class="toolhub-snapshot-grid">
         <article>
           <strong>路线</strong>
@@ -1917,31 +2059,13 @@ function renderToolhubRun(run) {
 
 function renderApiStatus(kind) {
   const run = kind === "profile" ? state.api.lastProfileRun : state.api.lastQuestionRun;
-  const title = kind === "profile" ? "P0 API 增强位：自然语言解析" : "P5 API 增强位：咨询问题润色";
-  const emptyText =
-    kind === "profile"
-      ? "当前还没调用增强位。点击后会模拟 HKGAI Modelhub 把输入拆成结构化画像；真实 API 失败时也会保留本地路线图。"
-      : "当前先展示模板问题。点击后会模拟 HKGAI Modelhub 润色语气；真实 API 不能改变材料边界和最终确认方。";
+  const title = kind === "profile" ? "已整理你的情况" : "已优化咨询问题";
 
-  if (!run) {
-    return `
-      <div class="api-card idle">
-        <strong>${title}</strong>
-        <p>${emptyText}</p>
-        <span>状态：等待调用 · fallback ready</span>
-      </div>
-    `;
-  }
+  if (!run) return "";
 
   return `
-    <div class="api-card">
+    <div class="api-card user-facing-status">
       <strong>${title}</strong>
-      <p>${run.reason}</p>
-      <div class="mini-meta">
-        <span>mode: ${run.mode}</span>
-        <span>provider: ${run.provider}</span>
-        <span>live_api: ${run.used_live_api ? "true" : "false"}</span>
-      </div>
       ${renderApiFallbackPanel(run)}
       ${kind === "profile" && run.inferred ? renderProfileInferencePanel(run.inferred) : ""}
       ${kind !== "profile" && run.inferred ? `<p>${run.inferred.summary}</p>` : ""}
@@ -1950,19 +2074,11 @@ function renderApiStatus(kind) {
 }
 
 function renderApiFallbackPanel(run) {
-  if (run.used_live_api) {
-    return `
-      <section class="api-fallback-panel live">
-        <strong>真实 API 调用成功</strong>
-        <p>前端只调用后端代理，API Key 没有暴露在 GitHub Pages 或浏览器代码里。</p>
-      </section>
-    `;
-  }
+  if (run.used_live_api) return "";
   return `
     <section class="api-fallback-panel">
-      <strong>回退验收通过</strong>
-      <p>当前没有依赖真实 API，系统已回到本地 fallback，Demo 主流程不会中断。</p>
-      <ul>${(run.fallback_checks || []).map((item) => `<li>${item}</li>`).join("")}</ul>
+      <strong>暂时使用内置指引</strong>
+      <p>当前网络或服务暂不可用，系统会继续用已准备好的本地指引完成主流程。</p>
     </section>
   `;
 }
@@ -2007,6 +2123,33 @@ function profileIntentTagLabel(tag) {
   return labels[tag] || tag;
 }
 
+function updateCompletedPrepFromInput(input) {
+  const text = input || "";
+  const doneWords = ["已", "已经", "办好", "完成", "搞定", "有了", "确认了"];
+  const notDoneWords = ["还没", "没有", "未", "没办", "没租", "没定", "未确认", "不确定"];
+  const rules = [
+    { taskId: "telecom_001", keywords: ["电话卡", "手机号", "通信", "验证码", "储值卡", "SIM"] },
+    { taskId: "entry_documents_001", keywords: ["证件", "入境", "材料", "签证", "学校信", "学生证明"] },
+    { taskId: "transport_payment_001", keywords: ["交通", "八达通", "路线", "机场", "天气", "支付"] },
+    { taskId: "housing_materials_001", keywords: ["住处", "住宿", "租房", "临时住", "酒店", "地址", "住址"] }
+  ];
+  const completed = new Set(state.completedPrepTaskIds || []);
+  rules.forEach((rule) => {
+    const hit = rule.keywords.some((keyword) => text.includes(keyword));
+    if (!hit) return;
+    const keywordIndex = Math.min(...rule.keywords.map((keyword) => {
+      const index = text.indexOf(keyword);
+      return index < 0 ? Number.POSITIVE_INFINITY : index;
+    }));
+    const windowText = text.slice(Math.max(0, keywordIndex - 8), keywordIndex + 18);
+    if (notDoneWords.some((word) => windowText.includes(word))) {
+      completed.delete(rule.taskId);
+      return;
+    }
+    if (doneWords.some((word) => windowText.includes(word))) completed.add(rule.taskId);
+  });
+  state.completedPrepTaskIds = [...completed];
+}
 async function runProfileEnhancement() {
   state.profile.input = document.querySelector("#profileInput")?.value || state.profile.input;
   state.api.isLoading = true;
@@ -2014,10 +2157,31 @@ async function runProfileEnhancement() {
   const result = await enhanceProfileInput(state.profile);
   state.api.lastProfileRun = result;
   state.profile = { ...state.profile, ...result.inferred };
+  updateCompletedPrepFromInput(state.profile.input);
   state.api.isLoading = false;
   render();
 }
 
+async function speakPhrase(event) {
+  const button = event.target.closest("[data-action='speak-phrase']");
+  if (!button) return;
+  const phrase = decodeURIComponent(button.dataset.phrase || "");
+  if (!phrase) return;
+  state.api.voiceLoadingKey = phrase;
+  state.api.lastVoiceRun = { text: phrase, used_live_api: false, reason: "正在生成粤语试听..." };
+  render();
+  const result = await synthesizeCantoneseSpeech(phrase);
+  state.api.voiceLoadingKey = null;
+  state.api.lastVoiceRun = { ...result, text: phrase };
+  render();
+  if (result.audio_url) {
+    const audio = new Audio(result.audio_url);
+    audio.play().catch(() => {
+      state.api.lastVoiceRun = { ...result, text: phrase, reason: "已生成粤语试听；浏览器阻止自动播放，请再点一次按钮。" };
+      render();
+    });
+  }
+}
 async function runToolhubEnhancement() {
   const task = getTask();
   if (!isToolhubTransportTask(task)) return;
@@ -2029,6 +2193,20 @@ async function runToolhubEnhancement() {
   render();
 }
 
+async function runAgenthubSourceCheck() {
+  const task = getTask();
+  state.api.isLoading = true;
+  render();
+  const result = await queryAgenthubSourceCheck({
+    title: task?.title || "香港新生办事来源",
+    category: task?.category || "general",
+    summary: task?.summary || "",
+    fallback_channels: questionFallbackChannels(task)
+  });
+  state.api.lastAgentRun = result;
+  state.api.isLoading = false;
+  render();
+}
 async function runQuestionPolish() {
   const context = buildQuestionContext();
   const baseQuestions = buildTemplateQuestions();
@@ -2092,7 +2270,6 @@ function bindEvents() {
     const stageButton = event.target.closest("[data-stage]");
     if (stageButton) {
       state.profile.arrival_stage = stageButton.dataset.stage;
-      if (!shouldShowPrepCompletion()) state.completedPrepTaskIds = [];
       syncProfileInput();
       render();
     }
@@ -2106,9 +2283,11 @@ function bindEvents() {
   });
   document.querySelector("[data-action='enhance-profile']")?.addEventListener("click", runProfileEnhancement);
   document.querySelector("[data-action='simulate-voice']")?.addEventListener("click", simulateVoiceInput);
+  document.querySelectorAll("[data-action='speak-phrase']").forEach((button) => button.addEventListener("click", speakPhrase));
   document.querySelector("[data-action='complete-loop']")?.addEventListener("click", completeAddressLoop);
   document.querySelector("[data-action='polish-questions']")?.addEventListener("click", runQuestionPolish);
   document.querySelector("[data-action='run-toolhub']")?.addEventListener("click", runToolhubEnhancement);
+  document.querySelector("[data-action='run-agenthub']")?.addEventListener("click", runAgenthubSourceCheck);
   document.querySelector("[data-action='open-source-current']")?.addEventListener("click", () => {
     openSources(isFamilyPersona()
       ? ["HK-S-208-1823-CONTACT", "HK-S-502-SWD-IFSC", "HK-S-503-HAD-NEW-ARRIVALS"]
@@ -2164,3 +2343,7 @@ function bindEvents() {
 boot().catch((error) => {
   app.innerHTML = `<main class="main"><section class="panel"><h1>Demo 加载失败</h1><p>${error.message}</p></section></main>`;
 });
+
+
+
+

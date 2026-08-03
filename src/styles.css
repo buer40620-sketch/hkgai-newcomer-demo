@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   color-scheme: light;
   --ink: #172026;
   --muted: #64707d;
@@ -674,7 +674,7 @@ code {
 }
 
 .task-card.deep h3::before {
-  content: "重点深挖 · ";
+  content: "閲嶇偣娣辨寲 路 ";
   color: var(--yellow);
   font-size: 14px;
 }
@@ -1657,7 +1657,7 @@ body {
 }
 
 .timeline-node::after {
-  content: "›";
+  content: "鈥?;
   grid-column: 3;
   grid-row: 1 / span 3;
   align-self: center;
@@ -3059,4 +3059,155 @@ body {
 .toolhub-links {
   margin: 0;
   line-height: 1.55;
+}
+
+.voice-tts-line {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #c9e8c8;
+  border-radius: 12px;
+  background: #f8fff5;
+  color: #45604a;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.voice-tts-line button {
+  min-height: 32px;
+  white-space: nowrap;
+}
+
+.voice-tts-line span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.voice-tts-line.live {
+  border-color: #9edc9a;
+  background: #effbea;
+  color: #245c2c;
+}
+
+.voice-tts-line.fallback {
+  border-color: #ecd48b;
+  background: #fffaf0;
+  color: #6f5620;
+}
+
+@media (max-width: 430px) {
+  .voice-tts-line {
+    grid-template-columns: 1fr;
+  }
+}
+
+.agenthub-card {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0;
+  padding: 18px;
+  border: 1px solid #cfe4f5;
+  border-radius: 18px;
+  background: #f7fbff;
+}
+
+.agenthub-card h2 {
+  margin: 0;
+  color: #12384f;
+}
+
+.agenthub-card > p:not(.eyebrow) {
+  margin: 0;
+  color: #526a79;
+  line-height: 1.6;
+}
+
+.agenthub-result {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #d7e6f2;
+}
+
+.agenthub-result p {
+  margin: 0;
+  color: #344e5f;
+  line-height: 1.6;
+}
+
+.agenthub-result small {
+  color: #6d7f8a;
+  line-height: 1.5;
+}
+
+.agenthub-source-list {
+  display: grid;
+  gap: 8px;
+}
+
+.agenthub-source-list a {
+  color: #1c63a1;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.hidden-dev-meta {
+  display: none;
+}
+
+.user-facing-status {
+  border-color: #c9e8c8;
+  background: #f8fff5;
+}
+
+.toolhub-call-list,
+.mini-meta.dev-meta {
+  display: none;
+}
+
+.option-first-welcome .visible-setup {
+  order: 2;
+}
+
+.option-first-welcome .supplement-card {
+  order: 3;
+  gap: 12px;
+}
+
+.supplement-head {
+  display: grid;
+  gap: 4px;
+  color: #005c25;
+  font-weight: 900;
+}
+
+.supplement-head span {
+  color: #6f7b72;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.compact-input-wrap textarea {
+  min-height: 112px;
+}
+
+.profile-assist-hint {
+  border: 1px solid #bfe8be;
+  border-left: 5px solid #ff6a00;
+  border-radius: 14px;
+  background: #f8fff5;
+  color: #245c2c;
+  font-weight: 800;
+  line-height: 1.55;
+  padding: 12px 14px;
+}
+
+.option-first-welcome .api-card.user-facing-status {
+  display: none;
 }
