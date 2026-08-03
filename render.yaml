@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: hkgai-newcomer-demo-proxy
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/hkgai/health
+    envVars:
+      - key: HKGAI_ALLOWED_ORIGINS
+        value: https://buer40620-sketch.github.io,http://localhost:5173
+      - key: HKGAI_TEXT_API_BASE
+        sync: false
+      - key: HKGAI_TEXT_API_KEY
+        sync: false
+      - key: HKGAI_TEXT_MODEL
+        sync: false
+      - key: HKGAI_VOICE_API_BASE
+        sync: false
+      - key: HKGAI_VOICE_API_KEY
+        sync: false
+      - key: HKGAI_VOICE_MODEL
+        sync: false
+      - key: HKGAI_TOOL_API_BASE
+        sync: false
+      - key: HKGAI_TOOL_APP_NAME
+        sync: false
+      - key: HKGAI_TOOL_APP_KEY
+        sync: false
+      - key: HKGAI_AGENT_API_BASE
+        sync: false
