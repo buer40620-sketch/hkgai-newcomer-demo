@@ -511,8 +511,8 @@
     "name": "MSSS 香港电话卡选购指南",
     "source_level": "D",
     "source_type": "student_experience",
-    "owner": "学生经验资料",
-    "url": "",
+    "owner": "HKUST Mainland Students and Scholars Society",
+    "url": "https://mp.weixin.qq.com/s/LVM5f8zd3-t2KCYbF-4uag",
     "task_tags": [
       "telecom",
       "student_experience",
@@ -523,9 +523,9 @@
       "non_local_student"
     ],
     "answer_allowed": false,
-    "last_verified_at": "2026-07-27",
+    "last_verified_at": "2026-07-29",
     "final_decision_maker": "目标电讯商或门店",
-    "boundary_note": "只作为学生经验来源，用于解释储值卡、上台、实名登记、二手卡等概念和风险；不作为官方规则或套餐推荐。"
+    "boundary_note": "作为电话卡任务参考资料，用于解释储值卡、上台、携号转台、实名登记、运营商、月卡/年卡、广告和诈骗电话风险；不作为官方规则或套餐推荐。"
   },
   {
     "source_id": "HK-D-406-HK01-SIM-TEST",
@@ -544,9 +544,9 @@
       "student"
     ],
     "answer_allowed": false,
-    "last_verified_at": "2026-07-27",
+    "last_verified_at": "2026-07-29",
     "final_decision_maker": "目标电讯商或门店",
-    "boundary_note": "只作为媒体实测样例。价格、套餐和网络表现会变化，不能做榜单或推荐。"
+    "boundary_note": "作为媒体实测和价格样例参考。价格、套餐和网络表现会变化，不能做榜单或推荐。"
   },
   {
     "source_id": "HK-S-213-GOVHK-HKID-BOOKING",
@@ -610,5 +610,26 @@
     "last_verified_at": "2026-07-27",
     "final_decision_maker": "Immigration Department",
     "boundary_note": "学生经验指南，仅用于提醒预约、预填表格、办事处选择和领取安排；不能替代入境处 / GovHK 官方要求。"
+  },
+  {
+    "source_id": "HK-D-408-YUE-MICBLO",
+    "name": "粤语朗读网页参考：yue.micblo.com",
+    "source_level": "D",
+    "source_type": "pronunciation_reference",
+    "owner": "Third-party Cantonese reading tool",
+    "url": "https://yue.micblo.com/",
+    "task_tags": [
+      "telecom",
+      "cantonese_phrase",
+      "pronunciation_reference"
+    ],
+    "user_group_tags": [
+      "newcomer",
+      "student"
+    ],
+    "answer_allowed": false,
+    "last_verified_at": "2026-07-29",
+    "final_decision_maker": "现场门店、目标电讯商或人工沟通对象",
+    "boundary_note": "只作为粤语发音和朗读参考，不作为办事、套餐、价格或通信服务依据；路演现场不依赖外部音频播放。"
   }
 ]

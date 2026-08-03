@@ -1,15 +1,15 @@
-﻿const DEFAULT_TIMEOUT_MS = 2500;
+﻿const DEFAULT_TIMEOUT_MS = 15000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function getProxyBase() {
-  return (globalThis.window?.HKGAI_API_PROXY_BASE || "").replace(/\/$/, "");
+  return (globalThis.window?.HKGAI_API_PROXY_BASE || globalThis.window?.location?.origin || "").replace(/\/$/, "");
 }
 
 async function callProxy(endpoint, payload) {
   const proxyBase = getProxyBase();
   if (!proxyBase) {
-    return { ok: false, reason: "未配置后端代理；当前使用本地 fallback。" };
+    return { ok: false, reason: "当前暂时无法连接智能服务，已继续使用内置指引。" };
   }
 
   const controller = new AbortController();
@@ -24,17 +24,75 @@ async function callProxy(endpoint, payload) {
     });
 
     if (!response.ok) {
-      return { ok: false, reason: `后端代理返回 ${response.status}；已回退到本地 fallback。` };
+      return { ok: false, reason: `当前智能服务暂时不可用，已继续使用内置指引。` };
     }
 
     const data = await response.json();
     return { ok: true, data };
   } catch (error) {
-    const reason = error?.name === "AbortError" ? "后端代理超时" : "后端代理调用失败";
-    return { ok: false, reason: `${reason}；已回退到本地 fallback。` };
+    const reason = error?.name === "AbortError" ? "智能服务响应较慢" : "智能服务暂时不可用";
+    return { ok: false, reason: `${reason}，已继续使用内置指引。` };
   } finally {
     clearTimeout(timeout);
   }
+}
+
+async function callBinaryProxy(endpoint, payload) {
+  const proxyBase = getProxyBase();
+  if (!proxyBase) {
+    return { ok: false, reason: "当前暂时无法生成语音，请继续参考粤拼和外部朗读页面。" };
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 22000);
+
+  try {
+    const response = await fetch(`${proxyBase}${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      return { ok: false, reason: `语音生成暂时失败，请继续参考粤拼和外部朗读页面。` };
+    }
+
+    const blob = await response.blob();
+    return { ok: true, blob };
+  } catch (error) {
+    const reason = error?.name === "AbortError" ? "语音智能服务响应较慢" : "语音智能服务暂时不可用";
+    return { ok: false, reason };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export async function synthesizeCantoneseSpeech(text) {
+  const proxyResult = await callBinaryProxy("/api/hkgai/voice/tts", {
+    text,
+    language: "cantonese",
+    voice: "female"
+  });
+
+  if (!proxyResult.ok) {
+    return {
+      mode: "voice_fallback",
+      provider: "local-voice-adapter",
+      used_live_api: false,
+      safe_to_continue: true,
+      reason: proxyResult.reason
+    };
+  }
+
+  return {
+    mode: "live_api",
+    provider: "hkgai-openspeech-tts-proxy",
+    used_live_api: true,
+    safe_to_continue: true,
+    reason: "已生成粤语试听。",
+    audio_url: URL.createObjectURL(proxyResult.blob)
+  };
 }
 
 export async function enhanceProfileInput(profile) {
@@ -46,7 +104,7 @@ export async function enhanceProfileInput(profile) {
       used_live_api: true,
       safe_to_continue: true,
       fallback_checks: [],
-      reason: "已通过后端代理调用 HKGAI Modelhub。API Key 未暴露给前端。",
+      reason: "已根据你的描述整理出当前情况。",
       inferred: normalizeProfileInference(proxyResult.data.inferred, profile)
     };
   }
@@ -64,7 +122,7 @@ export async function queryTravelToolhub(context) {
       used_live_api: true,
       safe_to_continue: true,
       fallback_checks: [],
-      reason: "已通过后端代理调用交通 / 天气 ToolHub；前端没有暴露 API Key。",
+      reason: "已更新交通和天气提醒。",
       ...proxyResult.data
     });
   }
@@ -79,7 +137,7 @@ export async function queryTravelToolhub(context) {
     reason: proxyResult.reason,
     toolhub_calls: ["transport_route", "transit_fare", "weather_query"],
     snapshot: {
-      route_summary: "当前无 ToolHub 凭证，先保留官方入口：HKeMobility / 香港天文台 / 八达通。",
+      route_summary: "暂时无法取得实时路线，先保留官方入口：HKeMobility / 香港天文台 / 八达通。",
       weather_note: "出发前查看天气警告；台风、暴雨和极端天气以香港天文台实时公告为准。",
       payment_note: "准备八达通或移动支付；票价、优惠和实名规则以官方渠道为准。",
       official_links: ["HKeMobility", "香港天文台", "八达通"]
@@ -87,6 +145,68 @@ export async function queryTravelToolhub(context) {
   });
 }
 
+export async function queryAgenthubSourceCheck(task) {
+  const proxyResult = await callProxy("/api/hkgai/agenthub/source-check", { task });
+  const fallbackSources = fallbackAgentSources(task);
+  if (proxyResult.ok && proxyResult.data?.summary) {
+    const liveSources = Array.isArray(proxyResult.data.sources) ? proxyResult.data.sources : [];
+    return {
+      mode: "live_api",
+      provider: "agenthub-search-proxy",
+      used_live_api: true,
+      safe_to_continue: true,
+      reason: "已补充查找相关来源线索。",
+      ...proxyResult.data,
+      sources: liveSources.length ? liveSources : fallbackSources,
+      boundary: liveSources.length
+        ? proxyResult.data.boundary
+        : "联网搜索已返回文本线索，但未抽取到可直接展示的新链接；这里先列出可核对入口，最终仍以官方/机构确认为准。"
+    };
+  }
+
+  return {
+    mode: "agenthub_fallback",
+    provider: "local-source-boundary",
+    used_live_api: false,
+    safe_to_continue: true,
+    reason: proxyResult.reason,
+    summary: fallbackSources.length
+      ? "暂时无法完成联网补充；先列出当前任务可核对的官方或机构入口。"
+      : "暂时无法补充联网来源；继续使用已入库可信来源和机构确认边界。",
+    sources: fallbackSources,
+    boundary: "这些入口只作为补充线索，不替代官方来源和目标机构确认。"
+  };
+}
+
+function fallbackAgentSources(task = {}) {
+  const category = task.category || "general";
+  const byCategory = {
+    telecom: [
+      { title: "OFCA 通信事务管理局", url: "https://www.ofca.gov.hk/" },
+      { title: "OFCA 实名登记资讯", url: "https://www.ofca.gov.hk/en/consumer_focus/guide/hot_topics/sim_registration/index.html" }
+    ],
+    transport: [
+      { title: "HKeMobility", url: "https://www.hkemobility.gov.hk/" },
+      { title: "香港天文台", url: "https://www.hko.gov.hk/" },
+      { title: "八达通", url: "https://www.octopus.com.hk/" }
+    ],
+    bank_medical: [
+      { title: "香港金融管理局银行资讯", url: "https://www.hkma.gov.hk/" },
+      { title: "医管局 HA", url: "https://www.ha.org.hk/" },
+      { title: "HAD 新来港服务", url: "https://www.had.gov.hk/" }
+    ],
+    housing_materials: [
+      { title: "1823 政府查询", url: "https://www.1823.gov.hk/" },
+      { title: "入境事务处", url: "https://www.immd.gov.hk/" },
+      { title: "香港金融管理局", url: "https://www.hkma.gov.hk/" }
+    ],
+    rental_scam: [
+      { title: "反诈骗协调中心 18222", url: "https://www.adcc.gov.hk/" },
+      { title: "香港警务处", url: "https://www.police.gov.hk/" }
+    ]
+  };
+  return byCategory[category] || [];
+}
 export async function polishConsultationQuestions(questions, context) {
   const proxyResult = await callProxy("/api/hkgai/polish-questions", { questions, context });
   if (proxyResult.ok && Array.isArray(proxyResult.data?.questions)) {
@@ -96,7 +216,7 @@ export async function polishConsultationQuestions(questions, context) {
       used_live_api: true,
       safe_to_continue: true,
       fallback_checks: [],
-      reason: "已通过后端代理调用 HKGAI Modelhub 润色问题；材料边界和最终确认方仍由本地规则保留。",
+      reason: "已把问题整理成更适合发给机构确认的表达。",
       questions: proxyResult.data.questions.map((item, index) => ({
         ...questions[index],
         ...item
@@ -116,7 +236,7 @@ function buildProfileFallback(profile, reason) {
       arrival_stage: inferArrivalStage(input, profile.arrival_stage),
       main_blocker: inferMainBlocker(input),
       intent_tags: inferTags(input),
-      summary: "已把自然语言输入拆成本地结构化画像：身份、抵港阶段、主要卡点和任务意图。当前是 mock fallback；后续有后端代理后可替换为 HKGAI Modelhub 返回。"
+      summary: "已根据你的描述整理身份、抵港阶段、主要卡点和任务意图。"
     },
     profile
   );
@@ -171,7 +291,7 @@ function normalizeToolhubResult(result) {
     used_live_api: Boolean(result.used_live_api),
     safe_to_continue: result.safe_to_continue !== false,
     fallback_checks: Array.isArray(result.fallback_checks) ? result.fallback_checks : [],
-    reason: result.reason || "交通 / 天气增强位已返回。",
+    reason: result.reason || "交通和天气提醒已返回。",
     toolhub_calls: Array.isArray(result.toolhub_calls) && result.toolhub_calls.length
       ? result.toolhub_calls
       : ["transport_route", "transit_fare", "weather_query"],
@@ -188,14 +308,14 @@ function normalizeToolhubResult(result) {
 
 function buildFallbackChecks(reason) {
   const checks = [
-    "前端没有保存或暴露 API Key",
+    "不会影响主流程继续使用",
     "真实 API 不可用时使用本地规则和模板",
     "P0 -> P5 -> P1 主流程继续可运行"
   ];
-  if (reason.includes("超时")) checks.unshift("后端代理超时已被捕获");
-  if (reason.includes("返回")) checks.unshift("后端代理错误状态已被捕获");
-  if (reason.includes("未配置")) checks.unshift("未配置后端代理已被识别");
-  if (reason.includes("调用失败")) checks.unshift("后端代理调用失败已被捕获");
+  if (reason.includes("超时")) checks.unshift("智能服务响应较慢已被捕获");
+  if (reason.includes("暂时不可用")) checks.unshift("当前服务暂时不可用，已自动切换到内置指引");
+  if (reason.includes("未配置")) checks.unshift("当前环境未开启智能服务，已自动切换到内置指引");
+  if (reason.includes("调用失败")) checks.unshift("智能服务暂时不可用已被捕获");
   return checks;
 }
 
@@ -246,3 +366,7 @@ function inferTags(input) {
 function includesAny(input, keywords) {
   return keywords.some((keyword) => input.includes(keyword));
 }
+
+
+
+

@@ -3,11 +3,14 @@
     {
       "assist_type": "onsite",
       "scene": "便利店 / 机场 / 电话卡门店",
-      "phrase": "唔该，我想问下有冇储值电话卡，短期用嗰种？",
-      "meaning": "请问有没有储值电话卡，短期用的那种？",
-      "jyutping": "m4 goi1, ngo5 soeng2 man6 haa5 jau5 mou5 cyu5 zik6 din6 waa2 kaat1, dyun2 kei4 jung6 go2 zung2?",
+      "phrase": "唔该，我想问下有冇储值电话卡",
+      "meaning": "请问有没有储值电话卡？",
+      "jyutping": "m4 goi1, ngo5 soeng2 man6 haa5 jau5 mou5 cyu5 zik6 din6 waa2 kaat1",
       "note": "适合现场先开口询问；只是发音参考，不是粤语教学。",
-      "pronunciation_hint": "唔该 ≈ m goi；有冇 ≈ yau mou；储值电话卡 ≈ cyu zik din waa kaat"
+      "pronunciation_hint": "唔该 ≈ m goi；有冇 ≈ yau mou；储值电话卡 ≈ cyu zik din waa kaat",
+      "audio_reference_label": "粤语播放参考",
+      "audio_reference_url": "https://yue.micblo.com/",
+      "audio_reference_note": "可把短句复制到该网页生成粤语朗读；现场演示不依赖外部音频。"
     }
   ],
   "entry_documents": [
